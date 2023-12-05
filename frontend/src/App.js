@@ -8,6 +8,7 @@ import Processes from "./components/Processes";
 import {FiefAuthProvider} from "@fief/fief/react";
 import {Callback, RequireAuth} from "./fief";
 import Container from "react-bootstrap/Container";
+import MapComponent from "./components/Map/Map";
 
 function Home() {
     return (
@@ -24,6 +25,7 @@ function Home() {
                     If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.
                 </p>
             </div>
+            <MapComponent/>
         </Container>
     );
 }
