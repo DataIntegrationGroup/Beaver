@@ -11,7 +11,7 @@ import Container from "react-bootstrap/Container";
 import MapComponent from "./components/Map/Map";
 import { PrimeReactProvider } from 'primereact/api';
 
-import "primereact/resources/themes/bootstrap4-dark-purple/theme.css";  //theme
+import "primereact/resources/themes/bootstrap4-light-blue/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";                                //icons
 import "primeflex/primeflex.css";                                  //flex
