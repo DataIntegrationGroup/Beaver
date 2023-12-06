@@ -6,7 +6,7 @@ import {useFiefAuth, useFiefIsAuthenticated, useFiefUserinfo} from "@fief/fief/r
 import {useCallback} from "react";
 import {Button} from "react-bootstrap";
 import user_logo from "../img/icon/user.png";
-
+import nmwdi_logo from "../img/nmwdi_logo11-23.png";
 
 function AppNavbar() {
     const fiefAuth = useFiefAuth();
@@ -54,7 +54,7 @@ function AppNavbar() {
             {/*</Container>*/}
             <Nav>
                 <Navbar.Brand href='https://newmexicowaterdata.org' >
-                    {/*<img src={nmwdi_logo} height='60px'/>*/}
+                    <img src={nmwdi_logo} height='60px'/>
                 </Navbar.Brand>
             </Nav>
             <Container>
