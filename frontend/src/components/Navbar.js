@@ -60,7 +60,7 @@ function AppNavbar() {
             <Container>
                 <Nav>
                     <Navbar.Brand href="/">Beaver</Navbar.Brand>
-                    {/*<Nav.Link href="dashboard">Dashboard</Nav.Link>*/}
+                    <Nav.Link href="dashboard">Dashboard</Nav.Link>
                     {/*<Nav.Link href="documentation">Documentation</Nav.Link>*/}
                     {/*<Nav.Link href="analytics">Analytics</Nav.Link>*/}
                     {/*<Nav.Link href="discovery">Discovery</Nav.Link>*/}
