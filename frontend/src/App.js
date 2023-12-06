@@ -17,6 +17,7 @@ import {Callback, RequireAuth} from "./fief";
 import Container from "react-bootstrap/Container";
 import MapComponent from "./components/Map/Map";
 import { PrimeReactProvider } from 'primereact/api';
+import Dashboard from "./components/Dashboard/Dashboard";
 
 
 function Home() {
@@ -24,7 +25,8 @@ function Home() {
         <Container>
             <div className={'text-center'}>
                 <h1>Welcome to Beaver!</h1>
-                <p>
+                <img width="30%" src='https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg'/>
+                <p >
                     Beaver is a data integration and discovery platform for the New Mexico Water Data Initiative.
                     <br/>
                     <br/>
@@ -34,7 +36,6 @@ function Home() {
                     If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.
                 </p>
             </div>
-            <MapComponent/>
         </Container>
     );
 }
@@ -50,6 +51,7 @@ function App() {
                   <BrowserRouter>
                       <Routes>
                           <Route path="/" element={<Home />}/>
+                          <Route path="/dashboard" element={<Dashboard />}/>
                           <Route path="/callback" element={<Callback />} />
                           {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
                           <Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>
