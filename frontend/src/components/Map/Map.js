@@ -1,7 +1,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import {useCallback, useEffect, useRef, useState} from "react";
-import Map, {Layer, Source, useMap} from 'react-map-gl';
+import Map, {Layer, NavigationControl, Source, useMap} from 'react-map-gl';
 import {SourceTree} from "./SourceTree";
 import {Col, Row} from "react-bootstrap";
 import {retrieveItems} from "../../util";
@@ -12,6 +12,7 @@ import DrawControl from './DrawControl';
 import * as turf from '@turf/turf'
 import {downloadCSV} from "../download_util";
 import {Panel} from "primereact/panel";
+import Container from "react-bootstrap/Container";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -134,7 +135,7 @@ export default function MapComponent(){
     }, []);
 
     return (
-        <div>
+        <Container>
             <Row>
                 <Col xs={4}>
                     <Panel header='Layers' toggleable>
@@ -156,22 +157,10 @@ export default function MapComponent(){
                         latitude: 34.5,
                         zoom: 6
                     }}
-                    style={{width: '100%', height: '650px', margin: 10}}
+                    style={{width: '100%', height: '650px'}}
                     mapStyle="mapbox://styles/mapbox/streets-v9"
                 >
-                    // setup drawing tools
-                    <DrawControl
-                        position="top-left"
-                        displayControlsDefault={false}
-                        controls={{
-                            polygon: true,
-                            trash: true
-                        }}
-                        defaultMode="draw_polygon"
-                        onCreate={onUpdate}
-                        onUpdate={onUpdate}
-                        onDelete={onDelete}
-                    />
+
 
                     // add sources
                     <Source id='nmbgmr_groundwater_levels'
@@ -207,11 +196,29 @@ export default function MapComponent(){
                         maxzoom={14}
                     >
                     </Source>
+
+
+                    // setup drawing tools
+                    <DrawControl
+                        position="top-left"
+                        displayControlsDefault={false}
+                        controls={{
+                            polygon: true,
+                            trash: true,
+                            combine_features: true,
+                            uncombine_features: true,
+                        }}
+                        defaultMode="draw_polygon"
+                        onCreate={onUpdate}
+                        onUpdate={onUpdate}
+                        onDelete={onDelete}
+                    />
+                    // setup navigation controls
+
+                    <NavigationControl/>
                     {loading && <ProgressSpinner />}
                 </Map></Col>
             </Row>
-
-
-        </div>
+        </Container>
     );
 }
