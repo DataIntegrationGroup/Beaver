@@ -1,11 +1,17 @@
-import {useEffect, useRef, useState} from "react";
-import Map, {Layer, Source, useMap} from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+
+import {useCallback, useEffect, useRef, useState} from "react";
+import Map, {Layer, Source, useMap} from 'react-map-gl';
 import {SourceTree} from "./SourceTree";
 import {Col, Row} from "react-bootstrap";
 import {retrieveItems} from "../../util";
 import {ProgressSpinner} from "primereact/progressspinner";
+import DownloadControl from "./DownloadControl";
+import DrawControl from './DrawControl';
 
+import * as turf from '@turf/turf'
+import {downloadCSV} from "../download_util";
+import {Panel} from "primereact/panel";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -17,13 +23,12 @@ function make_feature_collection(locations){
 }
 
 export default function MapComponent(){
-    const [usgs_gwl, setUSGSGWL] = useState(null);
-    const [nmbgmr_gwl, setNMBGMRGWL] = useState(null);
     const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels': null,
                         'usgs_groundwater_levels': null})
-    const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels': 'none',
+    const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels': 'visible',
     'usgs_groundwater_levels': 'none'})
     const [loading, setLoading] = useState(true)
+    const mapRef = useRef();
 
     useEffect(() => {
         // const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
@@ -45,8 +50,36 @@ export default function MapComponent(){
 
 
     }
+    const handleDownload = (format) => {
+        format = 'csv'
+        console.log('handle download', format)
+        console.log('features', features)
 
+        let selected = []
+        //get all features in selected polygons
+        for (const [key, searchPolygon] of Object.entries(features)){
+            const source = mapRef.current.getSource('nmbgmr_groundwater_levels')
+            const s = source._data.features.filter((f) => turf.booleanPointInPolygon(f.geometry, searchPolygon))
+            selected.push(...s)
+        }
+
+        const df = selected.map((feature) => {
+            const properties = feature.properties
+            const location = feature.geometry
+            return [properties.name, location.coordinates[1], location.coordinates[0]]
+
+        })
+
+        if (format==='csv'){
+            downloadCSV('download', df,
+                ['name', 'latitude', 'longitude'])
+        }
+
+    }
     const setupMap = (map) => {
+        // setLoading(false)
+        // return
+
         map.setTerrain({source: 'mapbox-dem', exaggeration: 3})
 
         const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
@@ -78,12 +111,41 @@ export default function MapComponent(){
             })
         })
     }
+    const [features, setFeatures] = useState({});
+
+    const onUpdate = useCallback(e => {
+        setFeatures(currFeatures => {
+            const newFeatures = {...currFeatures};
+            for (const f of e.features) {
+                newFeatures[f.id] = f;
+            }
+            return newFeatures;
+        });
+    }, []);
+
+    const onDelete = useCallback(e => {
+        setFeatures(currFeatures => {
+            const newFeatures = {...currFeatures};
+            for (const f of e.features) {
+                delete newFeatures[f.id];
+            }
+            return newFeatures;
+        });
+    }, []);
 
     return (
         <div>
             <Row>
-                <Col xs={4}><SourceTree handleSourceSelection={handleSourceSelection}/></Col>
+                <Col xs={4}>
+                    <Panel header='Layers' toggleable>
+                        <SourceTree handleSourceSelection={handleSourceSelection}/>
+                    </Panel>
+                    <Panel header='Download' collapsed toggleable>
+                        <DownloadControl downloader={handleDownload}/>
+                    </Panel>
+                </Col>
                 <Col><Map
+                    ref={mapRef}
                     onLoad={(e)=>{
                         console.log('map loaded')
                         setupMap(e.target)
@@ -97,7 +159,23 @@ export default function MapComponent(){
                     style={{width: '100%', height: '650px', margin: 10}}
                     mapStyle="mapbox://styles/mapbox/streets-v9"
                 >
-                    <Source type="geojson" data={sourceData['nmbgmr_groundwater_levels']}>
+                    // setup drawing tools
+                    <DrawControl
+                        position="top-left"
+                        displayControlsDefault={false}
+                        controls={{
+                            polygon: true,
+                            trash: true
+                        }}
+                        defaultMode="draw_polygon"
+                        onCreate={onUpdate}
+                        onUpdate={onUpdate}
+                        onDelete={onDelete}
+                    />
+
+                    // add sources
+                    <Source id='nmbgmr_groundwater_levels'
+                            type="geojson" data={sourceData['nmbgmr_groundwater_levels']}>
                         <Layer
                             id= 'data'
                             type= 'circle'
@@ -109,7 +187,8 @@ export default function MapComponent(){
                             layout={{visibility: layerVisibility['nmbgmr_groundwater_levels']}}
                         />
                     </Source>
-                    <Source type='geojson' data={sourceData['usgs_groundwater_levels']}>
+                    <Source id='usgs_groundwater_levels'
+                            type='geojson' data={sourceData['usgs_groundwater_levels']}>
                         <Layer
                             id= 'usgs_groundwater_levels'
                             type= 'circle'
@@ -127,10 +206,7 @@ export default function MapComponent(){
                         tileSize={512}
                         maxzoom={14}
                     >
-
                     </Source>
-
-
                     {loading && <ProgressSpinner />}
                 </Map></Col>
             </Row>

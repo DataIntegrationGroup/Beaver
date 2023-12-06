@@ -1,6 +1,13 @@
 import logo from './logo.svg';
+
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import "primereact/resources/themes/bootstrap4-light-blue/theme.css";  //theme
+import "primereact/resources/primereact.min.css";                  //core css
+import "primeicons/primeicons.css";                                //icons
+import "primeflex/primeflex.css";                                  //flex
+
+
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AppNavbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -11,10 +18,6 @@ import Container from "react-bootstrap/Container";
 import MapComponent from "./components/Map/Map";
 import { PrimeReactProvider } from 'primereact/api';
 
-import "primereact/resources/themes/bootstrap4-light-blue/theme.css";  //theme
-import "primereact/resources/primereact.min.css";                  //core css
-import "primeicons/primeicons.css";                                //icons
-import "primeflex/primeflex.css";                                  //flex
 
 function Home() {
     return (
