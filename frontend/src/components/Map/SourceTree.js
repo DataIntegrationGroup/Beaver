@@ -9,6 +9,7 @@ export function SourceTree({handleSourceSelection}) {
 
     useEffect(() => {
         const nmbgmr = {"key": "nmbgmr_groundwater_levels",
+            "checked": true,
             "label": "NMBGMR"}
         const usgs = {"key": "usgs_groundwater_levels",
             "label": "USGS"}
@@ -18,7 +19,7 @@ export function SourceTree({handleSourceSelection}) {
         const usgs_stream = {"key": "usgs_streamflow",
             "label": "USGS"}
 
-        const gwl = {"key":"gwl",
+        const gwl = {"key":"groundwater_levels",
             "label":"Groundwater Levels",
             "children": [nmbgmr, usgs]}
         const streamflow = {"key":"streamflow",
@@ -51,9 +52,12 @@ export function SourceTree({handleSourceSelection}) {
         // ]
         setNodes(data);
     }, [])
-    const [selectedFileKeys, setSelectedFileKeys] = useState(null);
+
+    const defaultSelection = {'nmbgmr_groundwater_levels': {'checked': true, 'partialChecked': false},
+                                    'groundwater_levels': {'checked': false, 'partialChecked': true}}
+
+    const [selectedFileKeys, setSelectedFileKeys] = useState(defaultSelection)
     return (
-            <div className={'card'}>
                 <Tree
                     selectionKeys={selectedFileKeys}
                     onSelectionChange={(e) => {setSelectedFileKeys(e.value)
@@ -61,7 +65,6 @@ export function SourceTree({handleSourceSelection}) {
                     selectionMode={'checkbox'}
                     filter={true}
                     value={nodes} />
-            </div>
 
     )
 }
