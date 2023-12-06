@@ -19,7 +19,7 @@ function make_feature_collection(locations){
 export default function MapComponent(){
     const [usgs_gwl, setUSGSGWL] = useState(null);
     const [nmbgmr_gwl, setNMBGMRGWL] = useState(null);
-    const [nmbgmr_visible, set_nmbgmr_visible] = useState('none')
+    const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels': 'none'})
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -37,9 +37,9 @@ export default function MapComponent(){
 
     const handleSourceSelection = (e) => {
         if (e.nmbgmr_groundwater_levels?.checked===true){
-            set_nmbgmr_visible('visible')
+            setLayerVisibility({...{"nmbgmr_groundwater_levels": 'visible'}})
         }else{
-            set_nmbgmr_visible('none')
+            setLayerVisibility({...{"nmbgmr_groundwater_levels": 'none'}})
         }
     }
 
@@ -83,7 +83,7 @@ export default function MapComponent(){
                                 'circle-color': '#007cbf',
                                 'circle-stroke-color': 'black',
                                 'circle-stroke-width': 1}}
-                            layout={{visibility: nmbgmr_visible}}/>
+                            layout={{visibility: layerVisibility['nmbgmr_groundwater_levels']}}/>
                     </Source>
                     <Source type='geojson' data={usgs_gwl}>
                         <Layer
