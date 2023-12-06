@@ -9,6 +9,12 @@ import {FiefAuthProvider} from "@fief/fief/react";
 import {Callback, RequireAuth} from "./fief";
 import Container from "react-bootstrap/Container";
 import MapComponent from "./components/Map/Map";
+import { PrimeReactProvider } from 'primereact/api';
+
+import "primereact/resources/themes/bootstrap4-dark-purple/theme.css";  //theme
+import "primereact/resources/primereact.min.css";                  //core css
+import "primeicons/primeicons.css";                                //icons
+import "primeflex/primeflex.css";                                  //flex
 
 function Home() {
     return (
@@ -31,29 +37,31 @@ function Home() {
 }
 function App() {
   return (
-      <FiefAuthProvider
-          baseURL="https://fief.newmexicowaterdata.org/beaver"
-          clientId='M28sGi4ipk-tO-_HILFSMC-ENXk_VbDuinCgAgVKsow'
-      >
-          <div className="wrapper">
-            <AppNavbar />
-            <BrowserRouter>
-              <Routes>
-                  <Route path="/" element={<Home />}/>
-                  <Route path="/callback" element={<Callback />} />
-                  {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
-                  <Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>
+      <PrimeReactProvider>
+          <FiefAuthProvider
+              baseURL="https://fief.newmexicowaterdata.org/beaver"
+              clientId='M28sGi4ipk-tO-_HILFSMC-ENXk_VbDuinCgAgVKsow'
+          >
+              <div className="wrapper">
+                  <AppNavbar />
+                  <BrowserRouter>
+                      <Routes>
+                          <Route path="/" element={<Home />}/>
+                          <Route path="/callback" element={<Callback />} />
+                          {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
+                          <Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>
 
-                {/*<Route path="/dashboard" element={<Dashboard auth={auth} setAuth={setAuth}/>}/>*/}
-                {/*<Route path="/preferences" element={<Preferences />}/>*/}
-                {/*<Route path="/admin" element={<Admin auth={auth}/>}/>*/}
-                {/*<Route path="/documentation" element={<Documentation />}/>*/}
-                {/*<Route path="/analytics" element={<Analytics />}/>*/}
-              </Routes>
-            </BrowserRouter>
-            <Footer />
-          </div>
-      </FiefAuthProvider>
+                          {/*<Route path="/dashboard" element={<Dashboard auth={auth} setAuth={setAuth}/>}/>*/}
+                          {/*<Route path="/preferences" element={<Preferences />}/>*/}
+                          {/*<Route path="/admin" element={<Admin auth={auth}/>}/>*/}
+                          {/*<Route path="/documentation" element={<Documentation />}/>*/}
+                          {/*<Route path="/analytics" element={<Analytics />}/>*/}
+                      </Routes>
+                  </BrowserRouter>
+                  <Footer />
+              </div>
+          </FiefAuthProvider>
+      </PrimeReactProvider>
   );
 }
 
