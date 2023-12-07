@@ -3,7 +3,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import {useCallback, useEffect, useRef, useState} from "react";
 import Map, {Layer, NavigationControl, Source, useMap} from 'react-map-gl';
 import {SourceTree} from "./SourceTree";
-import {Col, Row} from "react-bootstrap";
+// import {Col, Row} from "react-bootstrap";
 import {retrieveItems} from "../../util";
 import {ProgressSpinner} from "primereact/progressspinner";
 import DownloadControl from "./DownloadControl";
@@ -12,7 +12,9 @@ import DrawControl from './DrawControl';
 import * as turf from '@turf/turf'
 import {downloadCSV} from "../download_util";
 import {Panel} from "primereact/panel";
-import Container from "react-bootstrap/Container";
+// import Container from "react-bootstrap/Container";
+import HelpSidebar from "./HelpSidebar";
+import {Card} from "primereact/card";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -23,7 +25,7 @@ function make_feature_collection(locations){
     }
 }
 
-export default function MapComponent(){
+export default function MapComponent(props){
     const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels': null,
                         'usgs_groundwater_levels': null})
     const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels': 'visible',
@@ -45,10 +47,11 @@ export default function MapComponent(){
     }, [])
 
     const handleSourceSelection = (e) => {
+
+        console.log(e)
         const visibility = {"usgs_groundwater_levels": e.usgs_groundwater_levels?.checked===true? 'visible': 'none',
             "nmbgmr_groundwater_levels": e.nmbgmr_groundwater_levels?.checked===true? 'visible': 'none'}
         setLayerVisibility({...visibility})
-
 
     }
     const handleDownload = (format) => {
@@ -134,91 +137,157 @@ export default function MapComponent(){
         });
     }, []);
 
-    return (
-        <Container>
-            <Row>
-                <Col xs={4}>
-                    <Panel header='Layers' toggleable>
-                        <SourceTree handleSourceSelection={handleSourceSelection}/>
-                    </Panel>
-                    <Panel header='Download' collapsed toggleable>
-                        <DownloadControl downloader={handleDownload}/>
-                    </Panel>
-                </Col>
-                <Col><Map
-                    ref={mapRef}
-                    onLoad={(e)=>{
-                        console.log('map loaded')
-                        setupMap(e.target)
-                    }}
-                    mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
-                    initialViewState={{
-                        longitude: -106.4,
-                        latitude: 34.5,
-                        zoom: 6
-                    }}
-                    style={{width: '100%', height: '650px'}}
-                    mapStyle="mapbox://styles/mapbox/streets-v9"
-                >
+    const sources = [{tag:'nmbgmr_groundwater_levels', color:'#6dcc9f'},
+        {tag:'usgs_groundwater_levels', color:'#cb77c7'}]
 
+    return (<div>
+        <HelpSidebar visible={props.helpVisible} setVisible={props.setHelpVisible}/>
+            <div style={{'display': 'flex'}}>
+            <div style={{'flex': 1, padding:'10px'}}>
+                <Panel header='Layers' toggleable>
+                    <SourceTree handleSourceSelection={handleSourceSelection}/>
+                </Panel>
+                <Panel header='Download' collapsed toggleable>
+                    <DownloadControl downloader={handleDownload}/>
+                 </Panel>
 
-                    // add sources
-                    <Source id='nmbgmr_groundwater_levels'
-                            type="geojson" data={sourceData['nmbgmr_groundwater_levels']}>
-                        <Layer
-                            id= 'data'
-                            type= 'circle'
-                            paint= {{
-                                'circle-radius': 4,
-                                'circle-color': '#007cbf',
-                                'circle-stroke-color': 'black',
-                                'circle-stroke-width': 1}}
-                            layout={{visibility: layerVisibility['nmbgmr_groundwater_levels']}}
-                        />
-                    </Source>
-                    <Source id='usgs_groundwater_levels'
-                            type='geojson' data={sourceData['usgs_groundwater_levels']}>
-                        <Layer
-                            id= 'usgs_groundwater_levels'
-                            type= 'circle'
-                            paint= {{
-                                'circle-radius': 4,
-                                'circle-color': '#87ce5b',
-                                'circle-stroke-color': 'black',
-                                'circle-stroke-width': 1}}
-                            layout={{visibility: layerVisibility['usgs_groundwater_levels']}}
-                        />
-                    </Source>
-                    <Source id={'mapbox-dem'}
-                        type="raster-dem"
-                        url="mapbox://mapbox.mapbox-terrain-dem-v1"
-                        tileSize={512}
-                        maxzoom={14}
-                    >
-                    </Source>
-
-
-                    // setup drawing tools
-                    <DrawControl
-                        position="top-left"
-                        displayControlsDefault={false}
-                        controls={{
-                            polygon: true,
-                            trash: true,
-                            combine_features: true,
-                            uncombine_features: true,
+            </div>
+            <div style={{'flex': 2, padding:'10px'}}>
+                <Map
+                        ref={mapRef}
+                        onLoad={(e)=>{
+                            console.log('map loaded')
+                            setupMap(e.target)
                         }}
-                        defaultMode="draw_polygon"
-                        onCreate={onUpdate}
-                        onUpdate={onUpdate}
-                        onDelete={onDelete}
-                    />
-                    // setup navigation controls
+                        mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
+                        initialViewState={{
+                            longitude: -106.4,
+                            latitude: 34.5,
+                            zoom: 6
+                        }}
+                        style={{width: '100%', height: '650px'}}
+                        mapStyle="mapbox://styles/mapbox/streets-v9">
 
-                    <NavigationControl/>
-                    {loading && <ProgressSpinner />}
-                </Map></Col>
-            </Row>
-        </Container>
-    );
+                        {
+                            sources.map((s)=> (
+                            <Source id={s.tag} key={s.tag} type="geojson" data={sourceData[s.tag]}>
+                                <Layer
+                                    id= {s.tag}
+                                    type= 'circle'
+                                    paint= {{
+                                        'circle-radius': 4,
+                                        'circle-color': s.color,
+                                        'circle-stroke-color': 'black',
+                                        'circle-stroke-width': 1}}
+                                    layout={{visibility: layerVisibility[s.tag]}}
+                                />
+                            </Source>
+                            ))
+                        }
+
+                        <Source id={'mapbox-dem'}
+                            type="raster-dem"
+                            url="mapbox://mapbox.mapbox-terrain-dem-v1"
+                            tileSize={512}
+                            maxzoom={14}>
+                        </Source>
+
+                        // setup drawing tools
+                        <DrawControl
+                            position="top-left"
+                            displayControlsDefault={false}
+                            controls={{
+                                polygon: true,
+                                trash: true,
+                                combine_features: true,
+                                uncombine_features: true,
+                            }}
+                            defaultMode="draw_polygon"
+                            onCreate={onUpdate}
+                            onUpdate={onUpdate}
+                            onDelete={onDelete}
+                        />
+                        // setup navigation controls
+
+                        <NavigationControl/>
+                        {loading && <ProgressSpinner style={{position: 'fixed', top: '30%', left: '50%'}}/>}
+                    </Map>
+                </div>
+            </div>
+        </div>
+    )
+    // return (
+    //     <Container>
+    //         <HelpSidebar visible={props.helpVisible} setVisible={props.setHelpVisible}/>
+    //         <Row>
+    //             <Col xs={4}>
+    //                 <Panel header='Layers' toggleable>
+    //                     <SourceTree handleSourceSelection={handleSourceSelection}/>
+    //                 </Panel>
+    //                 <Panel header='Download' collapsed toggleable>
+    //                     <DownloadControl downloader={handleDownload}/>
+    //                 </Panel>
+    //             </Col>
+    //             <Col><Map
+    //                 ref={mapRef}
+    //                 onLoad={(e)=>{
+    //                     console.log('map loaded')
+    //                     setupMap(e.target)
+    //                 }}
+    //                 mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
+    //                 initialViewState={{
+    //                     longitude: -106.4,
+    //                     latitude: 34.5,
+    //                     zoom: 6
+    //                 }}
+    //                 style={{width: '100%', height: '650px'}}
+    //                 mapStyle="mapbox://styles/mapbox/streets-v9">
+    //
+    //                 {
+    //                     sources.map((s)=> (
+    //                     <Source id={s.tag} key={s.tag} type="geojson" data={sourceData[s.tag]}>
+    //                         <Layer
+    //                             id= {s.tag}
+    //                             type= 'circle'
+    //                             paint= {{
+    //                                 'circle-radius': 4,
+    //                                 'circle-color': s.color,
+    //                                 'circle-stroke-color': 'black',
+    //                                 'circle-stroke-width': 1}}
+    //                             layout={{visibility: layerVisibility[s.tag]}}
+    //                         />
+    //                     </Source>
+    //                     ))
+    //                 }
+    //
+    //                 <Source id={'mapbox-dem'}
+    //                     type="raster-dem"
+    //                     url="mapbox://mapbox.mapbox-terrain-dem-v1"
+    //                     tileSize={512}
+    //                     maxzoom={14}>
+    //                 </Source>
+    //
+    //                 // setup drawing tools
+    //                 <DrawControl
+    //                     position="top-left"
+    //                     displayControlsDefault={false}
+    //                     controls={{
+    //                         polygon: true,
+    //                         trash: true,
+    //                         combine_features: true,
+    //                         uncombine_features: true,
+    //                     }}
+    //                     defaultMode="draw_polygon"
+    //                     onCreate={onUpdate}
+    //                     onUpdate={onUpdate}
+    //                     onDelete={onDelete}
+    //                 />
+    //                 // setup navigation controls
+    //
+    //                 <NavigationControl/>
+    //                 {loading && <ProgressSpinner />}
+    //             </Map></Col>
+    //         </Row>
+    //     </Container>
+    // );
 }

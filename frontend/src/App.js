@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 
+// import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import "primereact/resources/themes/bootstrap4-light-blue/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
 import "primeicons/primeicons.css";                                //icons
@@ -11,18 +11,20 @@ import "primeflex/primeflex.css";                                  //flex
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AppNavbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Processes from "./components/Processes";
+// import Processes from "./components/Processes";
 import {FiefAuthProvider} from "@fief/fief/react";
 import {Callback, RequireAuth} from "./fief";
-import Container from "react-bootstrap/Container";
+// import Container from "react-bootstrap/Container";
 import MapComponent from "./components/Map/Map";
 import { PrimeReactProvider } from 'primereact/api';
 import Dashboard from "./components/Dashboard/Dashboard";
+import {useState} from "react";
+import {Message} from "primereact/message";
 
 
 function Home() {
     return (
-        <Container>
+        // <Container>
             <div className={'text-center'}>
                 <h1>Welcome to Beaver!</h1>
                 <img width="30%" src='https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg'/>
@@ -30,31 +32,39 @@ function Home() {
                     Beaver is a data integration and discovery platform for the New Mexico Water Data Initiative.
                     <br/>
                     <br/>
-                    Beaver is currently in active development!!
+                    <Message text={'Beaver is currently in active development!!'} severity={'warn'}/>
                     <br/>
+                    <br/>
+
+                    <Message text={"Check out the Map page to explore New Mexico water data"}/>
                     <br/>
                     If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.
                 </p>
             </div>
-        </Container>
+        // </Container>
     );
 }
 function App() {
-  return (
+
+    const [helpVisible, setHelpVisible] = useState(false)
+
+    return (
       <PrimeReactProvider>
           <FiefAuthProvider
               baseURL="https://fief.newmexicowaterdata.org/beaver"
               clientId='M28sGi4ipk-tO-_HILFSMC-ENXk_VbDuinCgAgVKsow'
           >
               <div className="wrapper">
-                  <AppNavbar />
+                  <AppNavbar setHelpVisible={setHelpVisible}/>
                   <BrowserRouter>
                       <Routes>
                           <Route path="/" element={<Home />}/>
-                          <Route path="/dashboard" element={<Dashboard />}/>
+                          <Route path="/dashboard" element={<Dashboard
+                              helpVisible={helpVisible}
+                              setHelpVisible={setHelpVisible}/>}/>
                           <Route path="/callback" element={<Callback />} />
                           {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
-                          <Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>
+                          {/*<Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>*/}
 
                           {/*<Route path="/dashboard" element={<Dashboard auth={auth} setAuth={setAuth}/>}/>*/}
                           {/*<Route path="/preferences" element={<Preferences />}/>*/}
