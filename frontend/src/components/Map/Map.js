@@ -45,10 +45,11 @@ export default function MapComponent(){
     }, [])
 
     const handleSourceSelection = (e) => {
+
+        console.log(e)
         const visibility = {"usgs_groundwater_levels": e.usgs_groundwater_levels?.checked===true? 'visible': 'none',
             "nmbgmr_groundwater_levels": e.nmbgmr_groundwater_levels?.checked===true? 'visible': 'none'}
         setLayerVisibility({...visibility})
-
 
     }
     const handleDownload = (format) => {
@@ -134,6 +135,9 @@ export default function MapComponent(){
         });
     }, []);
 
+    const sources = [{tag:'nmbgmr_groundwater_levels', color:'#6dcc9f'},
+        {tag:'usgs_groundwater_levels', color:'#cb77c7'}]
+
     return (
         <Container>
             <Row>
@@ -158,45 +162,31 @@ export default function MapComponent(){
                         zoom: 6
                     }}
                     style={{width: '100%', height: '650px'}}
-                    mapStyle="mapbox://styles/mapbox/streets-v9"
-                >
+                    mapStyle="mapbox://styles/mapbox/streets-v9">
 
+                    {
+                        sources.map((s)=> (
+                        <Source id={s.tag} key={s.tag} type="geojson" data={sourceData[s.tag]}>
+                            <Layer
+                                id= {s.tag}
+                                type= 'circle'
+                                paint= {{
+                                    'circle-radius': 4,
+                                    'circle-color': s.color,
+                                    'circle-stroke-color': 'black',
+                                    'circle-stroke-width': 1}}
+                                layout={{visibility: layerVisibility[s.tag]}}
+                            />
+                        </Source>
+                        ))
+                    }
 
-                    // add sources
-                    <Source id='nmbgmr_groundwater_levels'
-                            type="geojson" data={sourceData['nmbgmr_groundwater_levels']}>
-                        <Layer
-                            id= 'data'
-                            type= 'circle'
-                            paint= {{
-                                'circle-radius': 4,
-                                'circle-color': '#007cbf',
-                                'circle-stroke-color': 'black',
-                                'circle-stroke-width': 1}}
-                            layout={{visibility: layerVisibility['nmbgmr_groundwater_levels']}}
-                        />
-                    </Source>
-                    <Source id='usgs_groundwater_levels'
-                            type='geojson' data={sourceData['usgs_groundwater_levels']}>
-                        <Layer
-                            id= 'usgs_groundwater_levels'
-                            type= 'circle'
-                            paint= {{
-                                'circle-radius': 4,
-                                'circle-color': '#87ce5b',
-                                'circle-stroke-color': 'black',
-                                'circle-stroke-width': 1}}
-                            layout={{visibility: layerVisibility['usgs_groundwater_levels']}}
-                        />
-                    </Source>
                     <Source id={'mapbox-dem'}
                         type="raster-dem"
                         url="mapbox://mapbox.mapbox-terrain-dem-v1"
                         tileSize={512}
-                        maxzoom={14}
-                    >
+                        maxzoom={14}>
                     </Source>
-
 
                     // setup drawing tools
                     <DrawControl
