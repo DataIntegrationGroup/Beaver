@@ -22,6 +22,11 @@ export function downloadCSV(filename, rows, headers=null){
     if (headers === null){
         headers =rows.shift()
     }
-    console.log('downloadCSV', rows)
     down(filename+'.csv', toCSV(rows, headers, ',', ''))
+}
+export function downloadTSV(filename, rows, headers=null){
+    if (headers === null){
+        headers =rows.shift()
+    }
+    down(filename+'.tsv', toCSV(rows, headers, '\t', ''))
 }

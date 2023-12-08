@@ -10,7 +10,7 @@ import DownloadControl from "./DownloadControl";
 import DrawControl from './DrawControl';
 
 import * as turf from '@turf/turf'
-import {downloadCSV} from "../download_util";
+import {downloadCSV, downloadTSV} from "../download_util";
 import {Panel} from "primereact/panel";
 // import Container from "react-bootstrap/Container";
 import HelpSidebar from "./HelpSidebar";
@@ -60,26 +60,25 @@ export default function MapComponent(props){
     const [county, setCounty] = useState(null)
     const mapRef = useRef();
 
-    useEffect(() => {
-        // const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
-        //     '?$filter=startswith(Things/Datastreams/name, \'Groundwater\')'+
-        //     '&$expand=Things/Datastreams'
-        // // fetch(url).then(res => res.json()).then(data => {
-        // //     setData(make_feature_collection(data.value))
-        // // })
-        // retrieveItems(url, [], 2000).then(data => {
-        //     setNMBGMRGWL(make_feature_collection(data))
-        //     setLoading(false)
-        // })
-    }, [])
+    // useEffect(() => {
+    //     // const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
+    //     //     '?$filter=startswith(Things/Datastreams/name, \'Groundwater\')'+
+    //     //     '&$expand=Things/Datastreams'
+    //     // // fetch(url).then(res => res.json()).then(data => {
+    //     // //     setData(make_feature_collection(data.value))
+    //     // // })
+    //     // retrieveItems(url, [], 2000).then(data => {
+    //     //     setNMBGMRGWL(make_feature_collection(data))
+    //     //     setLoading(false)
+    //     // })
+    // }, [])
 
     const handleSourceSelection = (e) => {
         let vis = {}
         for (const s of sources){
             if (e[s.tag]?.checked===true){
-
-                const source = mapRef.current.getSource(s.tag)
-                if (source._data===null){
+                // console.log('asfdasfd', sourceData)
+                if (sourceData[s.tag]===null){
                     switch (s.tag) {
                         case 'nmbgmr_groundwater_levels_pressure':
                             const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
@@ -87,7 +86,8 @@ export default function MapComponent(props){
                                 '&$expand=Things/Datastreams'
                             setLoading(true)
                             retrieveItems(url, [], 1000).then(data => {
-                                setSourceData({...sourceData, 'nmbgmr_groundwater_levels_pressure': make_feature_collection(data)})
+                                setSourceData({...sourceData,
+                                    nmbgmr_groundwater_levels_pressure: make_feature_collection(data)})
                                 setLoading(false)
                             })
                             break;
@@ -97,23 +97,28 @@ export default function MapComponent(props){
                                 '&$expand=Things/Datastreams'
                             setLoading(true)
                             retrieveItems(url2, [], 1000).then(data => {
-                                setSourceData({...sourceData, 'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data)})
+                                setSourceData({...sourceData,
+                                    nmbgmr_groundwater_levels_acoustic: make_feature_collection(data)})
                                 setLoading(false)
                             })
                             break;
                         case 'usgs_groundwater_levels':
                             setLoading(true)
                             fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
-                                setSourceData({...sourceData, 'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations)})
+                                setSourceData({...sourceData,
+                                    usgs_groundwater_levels: make_usgs_feature_collection(usgs_gwl_locations)})
                                 setLoading(false)
+
                             })
                             break;
 
                         case 'usgs_stream_flow':
                             setLoading(true)
                             fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
-                                setSourceData({...sourceData, 'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations)})
+                                setSourceData({...sourceData,
+                                    usgs_stream_flow: make_usgs_feature_collection(usgs_stream_locations)})
                                 setLoading(false)
+
                             })
                             break;
                     }
@@ -121,28 +126,30 @@ export default function MapComponent(props){
             }
             vis[s.tag] = e[s.tag]?.checked===true? 'visible': 'none'
         }
-        setLayerVisibility({...vis})
+        setLayerVisibility(vis)
     }
     const handleDownload = (format) => {
-        format = 'csv'
         console.log('handle download', format)
         console.log('features', features)
 
         let selected = []
         //get all features in selected polygons
         for (const [key, searchPolygon] of Object.entries(features)){
-            for (const s of sources){
-                const source = mapRef.current.getSource(s.tag)
-                if (source._data===null){
+            for (let s of sources){
+                // let source = mapRef.current.getSource(s.tag)
+                console.log('source', s.tag, sourceData[s.tag], sourceData)
+                if (sourceData[s.tag]===null){
+                    console.log('no data for source', s.tag)
                     continue
                 }
-                const f = source._data.features.filter((f) => turf.booleanPointInPolygon(f.geometry, searchPolygon))
-                const ff = f.map((feature) => {return {...feature,
+                let f = sourceData[s.tag].features.filter((f) => turf.booleanPointInPolygon(f.geometry, searchPolygon))
+                let ff = f.map((feature) => {return {...feature,
                     'data_source': s.tag,
                     'well_depth': 0}})
                 selected.push(...ff)
             }
         }
+        console.log('selected', selected)
 
         const df = selected.map((feature) => {
             const properties = feature.properties
@@ -154,12 +161,19 @@ export default function MapComponent(props){
                     feature.well_depth]
 
         })
-
-        if (format==='csv'){
-            downloadCSV('download', df,
-                ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
+        console.log('coasdf', format.toLowerCase())
+        switch (format.toLowerCase()) {
+            case 'csv':
+                downloadCSV('download', df,
+                    ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
+                break;
+            case 'tsv':
+                downloadTSV('download', df,
+                    ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
+                break
+            case 'json':
+                break
         }
-
     }
 
     const handleSetCounty= (e)=>{
@@ -173,8 +187,18 @@ export default function MapComponent(props){
     const setupMap = (map) => {
         // setLoading(false)
         // return
-
-        map.setTerrain({source: 'mapbox-dem', exaggeration: 3})
+        // map.setProjection(
+        //     {name: "globe"}
+        // )
+        // map.setFog({
+        //         "range": [0.8, 8],
+        //         "color": "#dc9f9f",
+        //         "horizon-blend": 0.5,
+        //         "high-color": "#245bde",
+        //         "space-color": "#000000",
+        //         "star-intensity": 0.15
+        //     })
+        // map.setTerrain({source: 'mapbox-dem', exaggeration: 3})
 
         // const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
         //     '?$filter=startswith(Things/Datastreams/name, \'Groundwater\')'+
@@ -243,19 +267,28 @@ export default function MapComponent(props){
             <div style={{'flex': 2, padding:'10px'}}>
                 <Map
                         ref={mapRef}
-                        onLoad={(e)=>{
-                            console.log('map loaded')
-                            setupMap(e.target)
-                        }}
+                        // onLoad={(e)=>{
+                        //     console.log('map loaded')
+                        //     // setupMap(e.target)
+                        // }}
                         mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
                         initialViewState={{
                             longitude: -106.4,
                             latitude: 34.5,
                             zoom: 6
                         }}
+                        fog={{
+                            "range": [0.8, 8],
+                            // "color": "#f3dddd",
+                            "horizon-blend": 0.05,
+                            "high-color": "#245bde",
+                            "space-color": "#000000",
+                            "star-intensity": 0.95
+                        }}
+                        terrain={{source: 'mapbox-dem', exaggeration: 3}}
+                        // projection={'globe'}
                         style={{width: '100%', height: '650px'}}
                         mapStyle="mapbox://styles/mapbox/streets-v9">
-
                         {
                             sources.map((s)=> (
                             <Source id={s.tag} key={s.tag} type="geojson" data={sourceData[s.tag]}>
