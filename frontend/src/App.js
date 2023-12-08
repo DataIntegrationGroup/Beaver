@@ -20,6 +20,8 @@ import { PrimeReactProvider } from 'primereact/api';
 import Dashboard from "./components/Dashboard/Dashboard";
 import {useState} from "react";
 import {Message} from "primereact/message";
+import {Button} from "primereact/button";
+import {Divider} from "primereact/divider";
 
 
 function Home() {
@@ -37,8 +39,18 @@ function Home() {
 
                     <Message text={"Check out the Map page to explore New Mexico water data"}/>
                     <br/>
-                    If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.
+                    {/*If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.*/}
                 </p>
+                <Divider/>
+                <div className="surface-0 text-700 text-center">
+                    {/*<div className="text-blue-600 font-bold mb-3"><i className="pi pi-discord"></i>&nbsp;POWERED BY DISCORD</div>*/}
+                    <div className="text-900 font-bold text-5xl mb-3">Join Our Community</div>
+                    <div className="text-700 text-2xl mb-5">We are a group of Water Data Specialists trying to improve the flow of data from producer to consumer</div>
+                    <Button label="Join Now" icon="pi pi-slack"
+                            className="font-bold px-5 py-3 p-button-raised p-button-rounded white-space-nowrap"
+                    onClick={() => window.open('https://new-mexico-water-data.slack.com', '_blank')}
+                    />
+                </div>
             </div>
     );
 }
