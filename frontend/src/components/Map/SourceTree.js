@@ -8,11 +8,21 @@ export function SourceTree({handleSourceSelection}) {
     const [nodes, setNodes] = useState(null);
 
     useEffect(() => {
+        const nmbgmr_pressure = {key: "nmbgmr_groundwater_levels_pressure",
+            label: "Pressure",
+            className: "nmbgmr_groundwater_levels_pressure"}
+
+        const nmbgmr_acoustic = {key: "nmbgmr_groundwater_levels_acoustic",
+            label: "Acoustic",
+            className: "nmbgmr_groundwater_levels_acoustic"}
+
         const nmbgmr = {"key": "nmbgmr_groundwater_levels",
-            "checked": true,
+            "checked": false,
             "label": "NMBGMR",
             "className": "nmbgmr_groundwater_levels",
+            children: [nmbgmr_pressure, nmbgmr_acoustic]
         }
+
         const usgs = {"key": "usgs_groundwater_levels",
             "label": "USGS",
             "className": "usgs_groundwater_levels",}
@@ -57,8 +67,8 @@ export function SourceTree({handleSourceSelection}) {
         setNodes(data);
     }, [])
 
-    const defaultSelection = {'nmbgmr_groundwater_levels': {'checked': true, 'partialChecked': false},
-                                    'groundwater_levels': {'checked': false, 'partialChecked': true}}
+    const defaultSelection = {'nmbgmr_groundwater_levels': {'checked': false, 'partialChecked': false},
+                                    'groundwater_levels': {'checked': false, 'partialChecked': false}}
 
     const [selectedFileKeys, setSelectedFileKeys] = useState(defaultSelection)
     return (

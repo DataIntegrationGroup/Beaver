@@ -45,13 +45,15 @@ function make_usgs_url(paramCode){
 }
 
 export default function MapComponent(props){
-    const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels': null,
+    const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels_pressure': null,
+                        'nmbgmr_groundwater_levels_acoustic':null,
                         'usgs_groundwater_levels': null,
                         'usgs_stream_flow': null})
-    const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels': 'visible',
+    const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels_pressure': 'visible',
+    'nmbgmr_groundwater_levels_acoustic': 'none',
     'usgs_groundwater_levels': 'none',
     'usgs_stream_flow': 'none'})
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const mapRef = useRef();
 
     useEffect(() => {
@@ -68,15 +70,53 @@ export default function MapComponent(props){
     }, [])
 
     const handleSourceSelection = (e) => {
-
-        console.log(e)
         let vis = {}
         for (const s of sources){
+            if (e[s.tag]?.checked===true){
+
+                const source = mapRef.current.getSource(s.tag)
+                if (source._data===null){
+                    switch (s.tag) {
+                        case 'nmbgmr_groundwater_levels_pressure':
+                            const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
+                                '?$filter=Things/Datastreams/name eq \'Groundwater Levels(Pressure)\''+
+                                '&$expand=Things/Datastreams'
+                            setLoading(true)
+                            retrieveItems(url, [], 1000).then(data => {
+                                setSourceData({...sourceData, 'nmbgmr_groundwater_levels_pressure': make_feature_collection(data)})
+                                setLoading(false)
+                            })
+                            break;
+                        case 'nmbgmr_groundwater_levels_acoustic':
+                            const url2 ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
+                                '?$filter=Things/Datastreams/name eq \'Groundwater Levels(Acoustic)\''+
+                                '&$expand=Things/Datastreams'
+                            setLoading(true)
+                            retrieveItems(url2, [], 1000).then(data => {
+                                setSourceData({...sourceData, 'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data)})
+                                setLoading(false)
+                            })
+                            break;
+                        case 'usgs_groundwater_levels':
+                            setLoading(true)
+                            fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
+                                setSourceData({...sourceData, 'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations)})
+                                setLoading(false)
+                            })
+                            break;
+
+                        case 'usgs_stream_flow':
+                            setLoading(true)
+                            fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
+                                setSourceData({...sourceData, 'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations)})
+                                setLoading(false)
+                            })
+                            break;
+                    }
+                }
+            }
             vis[s.tag] = e[s.tag]?.checked===true? 'visible': 'none'
         }
-        // const visibility = {"usgs_groundwater_levels": e.usgs_groundwater_levels?.checked===true? 'visible': 'none',
-        //     "nmbgmr_groundwater_levels": e.nmbgmr_groundwater_levels?.checked===true? 'visible': 'none'}
-        // setLayerVisibility({...visibility})
         setLayerVisibility({...vis})
     }
     const handleDownload = (format) => {
@@ -111,25 +151,26 @@ export default function MapComponent(props){
 
         map.setTerrain({source: 'mapbox-dem', exaggeration: 3})
 
-        const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
-            '?$filter=startswith(Things/Datastreams/name, \'Groundwater\')'+
-            '&$expand=Things/Datastreams'
+        // const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
+        //     '?$filter=startswith(Things/Datastreams/name, \'Groundwater\')'+
+        //     '&$expand=Things/Datastreams'
 
-        retrieveItems(url, [], 10).then(nmbgmr_gwl_locations => {
-            // get usgs gwl locations
-            fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
-                // get usgs stream locations
-                fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
-                    setSourceData({'nmbgmr_groundwater_levels': make_feature_collection(nmbgmr_gwl_locations),
-                        'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations),
-                        'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations)})
-
-                    setLoading(false)
-                })
-
-            })
-        })
+        // retrieveItems(url, [], 10).then(nmbgmr_gwl_locations => {
+        //     // get usgs gwl locations
+        //     fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
+        //         // get usgs stream locations
+        //         fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
+        //             setSourceData({'nmbgmr_groundwater_levels': make_feature_collection(nmbgmr_gwl_locations),
+        //                 'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations),
+        //                 'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations)})
+        //
+        //             setLoading(false)
+        //         })
+        //
+        //     })
+        // })
     }
+
     const [features, setFeatures] = useState({});
 
     const onUpdate = useCallback(e => {
@@ -152,7 +193,8 @@ export default function MapComponent(props){
         });
     }, []);
 
-    const sources = [{tag:'nmbgmr_groundwater_levels', color:'#6dcc9f'},
+    const sources = [{tag:'nmbgmr_groundwater_levels_pressure', color:'#6dcc9f'},
+        {tag:'nmbgmr_groundwater_levels_acoustic', color:'#ccc46d'},
         {tag:'usgs_groundwater_levels', color:'#cb77c7'},
         {tag:'usgs_stream_flow', color:'#c24850'}]
 

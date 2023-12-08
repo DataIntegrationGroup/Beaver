@@ -1,5 +1,8 @@
-.nmbgmr_groundwater_levels .p-highlight {
+.nmbgmr_groundwater_levels_pressure .p-highlight {
     background-color: #6dcc9f;
+}
+.nmbgmr_groundwater_levels_acoustic .p-highlight {
+    background-color: #ccc46d;
 }
 .usgs_groundwater_levels .p-highlight {
     background-color: #cb77c7;
