@@ -47,7 +47,7 @@ function make_usgs_url(paramCode){
 
 export default function MapComponent(props){
     const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels_pressure': null,
-                        'nmbgmr_groundwater_levels_acoustic':null,
+                        'nmbgmr_groundwater_levels_acoustic': null,
                         'usgs_groundwater_levels': null,
                         'usgs_stream_flow': null,
                         'selected_county': null
@@ -77,7 +77,6 @@ export default function MapComponent(props){
         let vis = {}
         for (const s of sources){
             if (e[s.tag]?.checked===true){
-                // console.log('asfdasfd', sourceData)
                 if (sourceData[s.tag]===null){
                     switch (s.tag) {
                         case 'nmbgmr_groundwater_levels_pressure':
@@ -86,8 +85,8 @@ export default function MapComponent(props){
                                 '&$expand=Things/Datastreams'
                             setLoading(true)
                             retrieveItems(url, [], 1000).then(data => {
-                                setSourceData({...sourceData,
-                                    nmbgmr_groundwater_levels_pressure: make_feature_collection(data)})
+                                setSourceData((prev)=>{ return {...prev,
+                                    'nmbgmr_groundwater_levels_pressure': make_feature_collection(data) }})
                                 setLoading(false)
                             })
                             break;
@@ -97,29 +96,30 @@ export default function MapComponent(props){
                                 '&$expand=Things/Datastreams'
                             setLoading(true)
                             retrieveItems(url2, [], 1000).then(data => {
-                                setSourceData({...sourceData,
-                                    nmbgmr_groundwater_levels_acoustic: make_feature_collection(data)})
+                                setSourceData((prev)=>{ return {...prev,
+                                    'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data) }})
                                 setLoading(false)
                             })
                             break;
                         case 'usgs_groundwater_levels':
                             setLoading(true)
                             fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
-                                setSourceData({...sourceData,
-                                    usgs_groundwater_levels: make_usgs_feature_collection(usgs_gwl_locations)})
+                                setSourceData((prev)=>{ return {...prev,
+                                    'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations) }})
                                 setLoading(false)
 
                             })
                             break;
-
                         case 'usgs_stream_flow':
                             setLoading(true)
                             fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
-                                setSourceData({...sourceData,
-                                    usgs_stream_flow: make_usgs_feature_collection(usgs_stream_locations)})
+                                setSourceData((prev)=>{ return {...prev,
+                                    'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations) }})
                                 setLoading(false)
 
                             })
+                            break;
+                        default:
                             break;
                     }
                 }
@@ -178,9 +178,7 @@ export default function MapComponent(props){
 
     const handleSetCounty= (e)=>{
         console.log('set county', e)
-
         setSourceData({...sourceData, 'selected_county': e})
-
         setCounty(e)
     }
 
