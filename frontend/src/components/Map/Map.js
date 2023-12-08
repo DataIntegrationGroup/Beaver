@@ -49,12 +49,15 @@ export default function MapComponent(props){
     const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels_pressure': null,
                         'nmbgmr_groundwater_levels_acoustic':null,
                         'usgs_groundwater_levels': null,
-                        'usgs_stream_flow': null})
+                        'usgs_stream_flow': null,
+                        'selected_county': null
+    })
     const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels_pressure': 'visible',
     'nmbgmr_groundwater_levels_acoustic': 'none',
     'usgs_groundwater_levels': 'none',
     'usgs_stream_flow': 'none'})
     const [loading, setLoading] = useState(false)
+    const [county, setCounty] = useState(null)
     const mapRef = useRef();
 
     useEffect(() => {
@@ -128,24 +131,45 @@ export default function MapComponent(props){
         let selected = []
         //get all features in selected polygons
         for (const [key, searchPolygon] of Object.entries(features)){
-            const source = mapRef.current.getSource('nmbgmr_groundwater_levels')
-            const s = source._data.features.filter((f) => turf.booleanPointInPolygon(f.geometry, searchPolygon))
-            selected.push(...s)
+            for (const s of sources){
+                const source = mapRef.current.getSource(s.tag)
+                if (source._data===null){
+                    continue
+                }
+                const f = source._data.features.filter((f) => turf.booleanPointInPolygon(f.geometry, searchPolygon))
+                const ff = f.map((feature) => {return {...feature,
+                    'data_source': s.tag,
+                    'well_depth': 0}})
+                selected.push(...ff)
+            }
         }
 
         const df = selected.map((feature) => {
             const properties = feature.properties
             const location = feature.geometry
-            return [properties.name, location.coordinates[1], location.coordinates[0]]
+            return [feature.data_source,
+                    properties.name,
+                    location.coordinates[1],
+                    location.coordinates[0],
+                    feature.well_depth]
 
         })
 
         if (format==='csv'){
             downloadCSV('download', df,
-                ['name', 'latitude', 'longitude'])
+                ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
         }
 
     }
+
+    const handleSetCounty= (e)=>{
+        console.log('set county', e)
+
+        setSourceData({...sourceData, 'selected_county': e})
+
+        setCounty(e)
+    }
+
     const setupMap = (map) => {
         // setLoading(false)
         // return
@@ -210,7 +234,7 @@ export default function MapComponent(props){
                     <SearchControl/>
                 </Panel>
                 <Panel header='Filter' collapsed toggleable>
-                    <FilterControl/>
+                    <FilterControl county={county} setCounty={handleSetCounty}/>
                 </Panel>
                 <Panel header='Download' collapsed toggleable>
                     <DownloadControl downloader={handleDownload}/>
@@ -248,7 +272,15 @@ export default function MapComponent(props){
                             </Source>
                             ))
                         }
-
+                        <Source
+                            id={'selected_county'}
+                            type='geojson' data={sourceData['selected_county']}>
+                            <Layer type={'fill'}
+                            paint={{'fill-color': '#9ab7d5',
+                                    'fill-outline-color':'#000000',
+                                    'fill-opacity': 0.25}}>
+                            </Layer>
+                        </Source>
                         <Source id={'mapbox-dem'}
                             type="raster-dem"
                             url="mapbox://mapbox.mapbox-terrain-dem-v1"
