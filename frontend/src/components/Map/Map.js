@@ -15,6 +15,7 @@ import {Panel} from "primereact/panel";
 // import Container from "react-bootstrap/Container";
 import HelpSidebar from "./HelpSidebar";
 import SearchControl from "./SearchControl";
+import FilterControl from "./FilterControl";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -208,10 +209,12 @@ export default function MapComponent(props){
                 <Panel header='Search' collapsed toggleable>
                     <SearchControl/>
                 </Panel>
+                <Panel header='Filter' collapsed toggleable>
+                    <FilterControl/>
+                </Panel>
                 <Panel header='Download' collapsed toggleable>
                     <DownloadControl downloader={handleDownload}/>
-                 </Panel>
-
+                </Panel>
             </div>
             <div style={{'flex': 2, padding:'10px'}}>
                 <Map
