@@ -17,6 +17,8 @@ import {Panel} from "primereact/panel";
 import HelpSidebar from "./HelpSidebar";
 import SearchControl from "./SearchControl";
 import FilterControl from "./FilterControl";
+import Hydrograph from "./Hydrograph";
+import HydrographTable from "./HydrographTable";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -69,7 +71,9 @@ export default function MapComponent(props){
     const [loading, setLoading] = useState(false)
     const [county, setCounty] = useState(null)
     const [features, setFeatures] = useState({});
-
+    const [selected, setSelected] = useState(null)
+    const [hydroCollapsed, setHydroCollapsed] = useState(true)
+    const [data, setData] = useState(null)
     const mapRef = useRef();
 
     // useEffect(() => {
@@ -296,26 +300,61 @@ export default function MapComponent(props){
         });
     }, []);
 
+    const onMouseClick = (e) => {
+        console.log('map click', e)
+        const selected_point = getCurrentPoint(e)
+        if (selected_point===undefined){
+            return
+        }
+        console.log('selected point', selected_point)
+        setSelected(selected_point)
+        setHydroCollapsed(false)
+    }
+    const onMouseMove = (e) => {
+        mapRef.current.getCanvas().style.cursor = 'crosshair';
+        const selected_point = getCurrentPoint(e)
+        if (selected_point===undefined){
+            return
+        }
+        mapRef.current.getCanvas().style.cursor = 'pointer';
+    }
+    const getCurrentPoint = (e)=>{
+        const sourcenames = sources.map((s) => s.tag)
+        const features = mapRef.current.queryRenderedFeatures(e.point);
+        const selected_point = features.find((f) => sourcenames.includes(f.layer.id))
+        if (selected_point===undefined){
+            return
+        }
+        return selected_point
+    }
 
     return (<div>
-        <HelpSidebar visible={props.helpVisible} setVisible={props.setHelpVisible}/>
-            <div style={{'display': 'flex'}}>
-            <div style={{'flex': 1, padding:'10px'}}>
-                <Panel header= {<div> <span className={'panelicon pi pi-clone'}/>Layer</div>}
-                           toggleable>
-                    <SourceTree handleSourceSelection={handleSourceSelection}/>
-                </Panel>
-                <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
-                    <SearchControl/>
-                </Panel>
-                <Panel header={<div><span className={'panelicon pi pi-filter'}/>Filter</div>} collapsed toggleable>
-                    <FilterControl county={county} setCounty={onCountySelect}/>
-                </Panel>
-                <Panel header={<div><span className={'panelicon pi pi-download'}/>Download</div>} collapsed toggleable>
-                    <DownloadControl downloader={onDownload}/>
-                </Panel>
-            </div>
-            <div style={{'flex': 2, padding:'10px'}}>
+            <HelpSidebar visible={props.helpVisible} setVisible={props.setHelpVisible}/>
+            <div className={'grid'}>
+                <div className={'col-4'} style={{padding: '20px'}}>
+                    <Panel header= {<div> <span className={'panelicon pi pi-clone'}/>Layer</div>}
+                               toggleable>
+                        <SourceTree handleSourceSelection={handleSourceSelection}/>
+                    </Panel>
+                    <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
+                        <SearchControl/>
+                    </Panel>
+                    <Panel header={<div><span className={'panelicon pi pi-filter'}/>Filter</div>} collapsed toggleable>
+                        <FilterControl county={county} setCounty={onCountySelect}/>
+                    </Panel>
+                    <Panel header={<div><span className={'panelicon pi pi-chart-line'}/>Hydgrograph</div>}
+                           onToggle={(e) => {setHydroCollapsed(e.value)}}
+                           collapsed={hydroCollapsed} toggleable>
+                        <Hydrograph  selected={selected} data={data} setData={setData}/>
+                    </Panel>
+                    <Panel header={<div><span className={'panelicon pi pi-table'}/>Table</div>} collapsed toggleable>
+                        <HydrographTable selected={selected} data={data}/>
+                    </Panel>
+                    <Panel header={<div><span className={'panelicon pi pi-download'}/>Download</div>} collapsed toggleable>
+                        <DownloadControl downloader={onDownload}/>
+                    </Panel>
+                </div>
+                <div className={'col'} style={{padding: '20px'}}>
                 <Map
                     ref={mapRef}
                     mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
@@ -324,6 +363,9 @@ export default function MapComponent(props){
                         latitude: 34.5,
                         zoom: 6
                     }}
+                    // onClick={(e) => (
+                    //     console.log('map click', e)
+                    // )}
                     fog={{
                         "range": [0.8, 8],
                         // "color": "#f3dddd",
@@ -335,8 +377,17 @@ export default function MapComponent(props){
                     terrain={{source: 'mapbox-dem', exaggeration: 3}}
                     projection={'globe'}
                     style={{width: '100%', height: '650px'}}
-                    mapStyle="mapbox://styles/mapbox/streets-v9">
+                    mapStyle="mapbox://styles/mapbox/streets-v9"
+                    onMouseMove={onMouseMove}
+                    onClick={onMouseClick}
+                >
 
+                    {/*onMouseMove={onMouseMove}*/}
+                    {/*onClick={(e) => (*/}
+                    {/*        console.log('map click', e)*/}
+                    {/*        // setSelected(e.features[0])*/}
+                    {/*        )*/}
+                    {/*    }*/}
                     {
                         sources.map((s)=> (
                         <Source id={s.tag} key={s.tag} type="geojson" data={sourceData[s.tag]}>
@@ -357,10 +408,12 @@ export default function MapComponent(props){
                     <Source
                         id={'selected_county'}
                         type='geojson' data={sourceData['selected_county']}>
-                        <Layer type={'fill'}
-                        paint={{'fill-color': '#9ab7d5',
+                        <Layer
+                            type={'fill'}
+                            paint={{'fill-color': '#9ab7d5',
                                 'fill-outline-color':'#000000',
                                 'fill-opacity': 0.25}}>
+
                         </Layer>
                     </Source>
                     <Source id={'mapbox-dem'}
@@ -380,7 +433,7 @@ export default function MapComponent(props){
                             combine_features: true,
                             uncombine_features: true,
                         }}
-                        defaultMode="draw_polygon"
+                        // defaultMode="draw_polygon"
                         onCreate={onUpdate}
                         onUpdate={onUpdate}
                         onDelete={onDelete}

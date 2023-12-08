@@ -24,7 +24,6 @@ import {Message} from "primereact/message";
 
 function Home() {
     return (
-        // <Container>
             <div className={'text-center'}>
                 <h1>Welcome to Beaver!</h1>
                 <img width="30%" src='https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg'/>
@@ -41,7 +40,6 @@ function Home() {
                     If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.
                 </p>
             </div>
-        // </Container>
     );
 }
 function App() {
