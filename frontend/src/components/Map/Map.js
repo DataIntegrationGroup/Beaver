@@ -45,19 +45,30 @@ function make_usgs_url(paramCode){
         'siteStatus=all'
 }
 
+const sources = [{tag:'nmbgmr_groundwater_levels_pressure', color:'#6dcc9f'},
+    {tag:'nmbgmr_groundwater_levels_acoustic', color:'#ccc46d'},
+    {tag:'usgs_groundwater_levels', color:'#cb77c7'},
+    {tag:'usgs_stream_flow', color:'#c24850'}]
+
+const defaultSourceData = Object.fromEntries(sources.map((s) => [s.tag, null]))
+const defaultLayerVisibility = Object.fromEntries(sources.map((s) => [s.tag, 'none']))
 export default function MapComponent(props){
-    const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels_pressure': null,
-                        'nmbgmr_groundwater_levels_acoustic': null,
-                        'usgs_groundwater_levels': null,
-                        'usgs_stream_flow': null,
-                        'selected_county': null
-    })
-    const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels_pressure': 'visible',
-    'nmbgmr_groundwater_levels_acoustic': 'none',
-    'usgs_groundwater_levels': 'none',
-    'usgs_stream_flow': 'none'})
+    // const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels_pressure': null,
+    //                     'nmbgmr_groundwater_levels_acoustic': null,
+    //                     'usgs_groundwater_levels': null,
+    //                     'usgs_stream_flow': null,
+    //                     'selected_county': null
+    // })
+
+    const [sourceData, setSourceData] = useState({...defaultSourceData,
+        selected_county: null})
+    const [osourceData, setOSourceData] = useState(defaultSourceData)
+    const [layerVisibility, setLayerVisibility] = useState({...defaultLayerVisibility,
+        selected_county: 'none'})
     const [loading, setLoading] = useState(false)
     const [county, setCounty] = useState(null)
+    const [features, setFeatures] = useState({});
+
     const mapRef = useRef();
 
     // useEffect(() => {
@@ -87,6 +98,8 @@ export default function MapComponent(props){
                             retrieveItems(url, [], 1000).then(data => {
                                 setSourceData((prev)=>{ return {...prev,
                                     'nmbgmr_groundwater_levels_pressure': make_feature_collection(data) }})
+                                setOSourceData((prev)=>{ return {...prev,
+                                    'nmbgmr_groundwater_levels_pressure': make_feature_collection(data) }})
                                 setLoading(false)
                             })
                             break;
@@ -98,6 +111,8 @@ export default function MapComponent(props){
                             retrieveItems(url2, [], 1000).then(data => {
                                 setSourceData((prev)=>{ return {...prev,
                                     'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data) }})
+                                setOSourceData((prev)=>{ return {...prev,
+                                    'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data) }})
                                 setLoading(false)
                             })
                             break;
@@ -105,6 +120,8 @@ export default function MapComponent(props){
                             setLoading(true)
                             fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
                                 setSourceData((prev)=>{ return {...prev,
+                                    'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations) }})
+                                setOSourceData((prev)=>{ return {...prev,
                                     'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations) }})
                                 setLoading(false)
 
@@ -115,6 +132,9 @@ export default function MapComponent(props){
                             fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
                                 setSourceData((prev)=>{ return {...prev,
                                     'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations) }})
+                                setOSourceData((prev)=>{ return {...prev,
+                                    'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations) }})
+
                                 setLoading(false)
 
                             })
@@ -127,59 +147,6 @@ export default function MapComponent(props){
             vis[s.tag] = e[s.tag]?.checked===true? 'visible': 'none'
         }
         setLayerVisibility(vis)
-    }
-    const handleDownload = (format) => {
-        console.log('handle download', format)
-        console.log('features', features)
-
-        let selected = []
-        //get all features in selected polygons
-        for (const [key, searchPolygon] of Object.entries(features)){
-            for (let s of sources){
-                // let source = mapRef.current.getSource(s.tag)
-                console.log('source', s.tag, sourceData[s.tag], sourceData)
-                if (sourceData[s.tag]===null){
-                    console.log('no data for source', s.tag)
-                    continue
-                }
-                let f = sourceData[s.tag].features.filter((f) => turf.booleanPointInPolygon(f.geometry, searchPolygon))
-                let ff = f.map((feature) => {return {...feature,
-                    'data_source': s.tag,
-                    'well_depth': 0}})
-                selected.push(...ff)
-            }
-        }
-        console.log('selected', selected)
-
-        const df = selected.map((feature) => {
-            const properties = feature.properties
-            const location = feature.geometry
-            return [feature.data_source,
-                    properties.name,
-                    location.coordinates[1],
-                    location.coordinates[0],
-                    feature.well_depth]
-
-        })
-        console.log('coasdf', format.toLowerCase())
-        switch (format.toLowerCase()) {
-            case 'csv':
-                downloadCSV('download', df,
-                    ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
-                break;
-            case 'tsv':
-                downloadTSV('download', df,
-                    ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
-                break
-            case 'json':
-                break
-        }
-    }
-
-    const handleSetCounty= (e)=>{
-        console.log('set county', e)
-        setSourceData({...sourceData, 'selected_county': e})
-        setCounty(e)
     }
 
     const setupMap = (map) => {
@@ -218,7 +185,90 @@ export default function MapComponent(props){
         // })
     }
 
-    const [features, setFeatures] = useState({});
+    const onDownload = (format) => {
+        console.log('selected', format)
+        console.log('handle download', format)
+        console.log('features', features)
+
+        let selected = []
+        //get all features in selected polygons
+        for (const [key, searchPolygon] of Object.entries(features)){
+            for (let s of sources){
+                // let source = mapRef.current.getSource(s.tag)
+                console.log('source', s.tag, sourceData[s.tag], sourceData)
+                if (sourceData[s.tag]===null){
+                    console.log('no data for source', s.tag)
+                    continue
+                }
+                let f = sourceData[s.tag].features.filter((f) => turf.booleanPointInPolygon(f.geometry, searchPolygon))
+                let ff = f.map((feature) => {return {...feature,
+                    'data_source': s.tag,
+                    'well_depth': 0}})
+                selected.push(...ff)
+            }
+        }
+
+        const df = selected.map((feature) => {
+            const properties = feature.properties
+            const location = feature.geometry
+            return [feature.data_source,
+                properties.name,
+                location.coordinates[1],
+                location.coordinates[0],
+                feature.well_depth]
+
+        })
+
+        switch (format.toLowerCase()) {
+            case 'csv':
+                downloadCSV('download', df,
+                    ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
+                break;
+            case 'tsv':
+                downloadTSV('download', df,
+                    ['data_source', 'name', 'latitude', 'longitude', 'well_depth'])
+                break
+            case 'json':
+                break;
+            default:
+                break;
+        }
+    }
+
+    const onCountySelect = (e, enabled) => {
+        if (e===null){
+            return
+        }
+
+        // display selected county
+        setCounty(e)
+        setSourceData((prev)=>{ return {...prev,
+            'selected_county': e }})
+
+        if (enabled===false){
+            setSourceData((prev)=>{ return {...prev,
+                ...osourceData}})
+            return
+        }
+
+        // for each visible source layer, filter by county
+        for (let s of sources){
+            if (osourceData[s.tag]===null){
+                console.debug('no data for source', s.tag)
+                continue
+            }
+            if (layerVisibility[s.tag]!=='visible'){
+                console.debug('layer not visible', s.tag)
+                continue
+            }
+            let ff = osourceData[s.tag].features.filter((f) => turf.booleanPointInPolygon(f.geometry, e.geometry))
+
+            setSourceData((prev)=>{
+                return {...prev,
+                [s.tag]: {'type': 'FeatureCollection', 'features': ff}}})
+        }
+
+    }
 
     const onUpdate = useCallback(e => {
         setFeatures(currFeatures => {
@@ -240,10 +290,6 @@ export default function MapComponent(props){
         });
     }, []);
 
-    const sources = [{tag:'nmbgmr_groundwater_levels_pressure', color:'#6dcc9f'},
-        {tag:'nmbgmr_groundwater_levels_acoustic', color:'#ccc46d'},
-        {tag:'usgs_groundwater_levels', color:'#cb77c7'},
-        {tag:'usgs_stream_flow', color:'#c24850'}]
 
     return (<div>
         <HelpSidebar visible={props.helpVisible} setVisible={props.setHelpVisible}/>
@@ -256,10 +302,10 @@ export default function MapComponent(props){
                     <SearchControl/>
                 </Panel>
                 <Panel header='Filter' collapsed toggleable>
-                    <FilterControl county={county} setCounty={handleSetCounty}/>
+                    <FilterControl county={county} setCounty={onCountySelect}/>
                 </Panel>
                 <Panel header='Download' collapsed toggleable>
-                    <DownloadControl downloader={handleDownload}/>
+                    <DownloadControl downloader={onDownload}/>
                 </Panel>
             </div>
             <div style={{'flex': 2, padding:'10px'}}>

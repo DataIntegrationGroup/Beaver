@@ -21,11 +21,14 @@ export default function FilterControl({county, setCounty}){
         <div>
             <div className="p-inputgroup">
                             <span className="p-inputgroup-addon">
-                                <Checkbox checked={checked1} onChange={(e) => setChecked1(!checked1)} />
+                                <Checkbox checked={checked1} onChange={(e) => {
+                                    setCounty(county, !checked1)
+                                    setChecked1(!checked1)
+                                }} />
                             </span>
                 <Dropdown value={county}
                           options={counties}
-                          onChange={(e) => setCounty(e.value)}
+                          onChange={(e) => setCounty(e.value, checked1)}
                           placeholder="Select a County" />
             </div>
         </div>
