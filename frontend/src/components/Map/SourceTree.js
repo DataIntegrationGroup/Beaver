@@ -1,7 +1,7 @@
 
 import { Tree } from 'primereact/tree';
 import {useEffect, useState} from "react";
-
+import './SourceTree.css'
 
 export function SourceTree({handleSourceSelection}) {
 
@@ -10,14 +10,18 @@ export function SourceTree({handleSourceSelection}) {
     useEffect(() => {
         const nmbgmr = {"key": "nmbgmr_groundwater_levels",
             "checked": true,
-            "label": "NMBGMR"}
+            "label": "NMBGMR",
+            "className": "nmbgmr_groundwater_levels",
+        }
         const usgs = {"key": "usgs_groundwater_levels",
-            "label": "USGS"}
+            "label": "USGS",
+            "className": "usgs_groundwater_levels",}
 
-        const ose_stream = {"key": "ose_streamflow",
+        const ose_stream = {"key": "ose_stream_flow",
             "label": "OSE RealTime"}
-        const usgs_stream = {"key": "usgs_streamflow",
-            "label": "USGS"}
+        const usgs_stream = {"key": "usgs_stream_flow",
+            "label": "USGS",
+            "className": "usgs_stream_flow",}
 
         const gwl = {"key":"groundwater_levels",
             "label":"Groundwater Levels",
@@ -59,6 +63,7 @@ export function SourceTree({handleSourceSelection}) {
     const [selectedFileKeys, setSelectedFileKeys] = useState(defaultSelection)
     return (
                 <Tree
+                    className={'w-full md:w-30rem'}
                     selectionKeys={selectedFileKeys}
                     onSelectionChange={(e) => {setSelectedFileKeys(e.value)
                         handleSourceSelection(e.value)}}

@@ -14,7 +14,7 @@ import {downloadCSV} from "../download_util";
 import {Panel} from "primereact/panel";
 // import Container from "react-bootstrap/Container";
 import HelpSidebar from "./HelpSidebar";
-import {Card} from "primereact/card";
+import SearchControl from "./SearchControl";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -24,12 +24,33 @@ function make_feature_collection(locations){
                     'Things': location['Things']}}})
     }
 }
+function make_usgs_feature_collection(data){
+    console.log('usgs locations', data)
+    const locations = data.value.timeSeries.map((location) => {
+        return {'name': location.sourceInfo.siteName,
+            'location': {'type': 'Point',
+                'coordinates': [location.sourceInfo.geoLocation.geogLocation.longitude,
+                    location.sourceInfo.geoLocation.geogLocation.latitude]},
+            'Things': [{'Datastreams': [{'name': 'Groundwater Level'}]}]}
+    })
+    return make_feature_collection(locations)
+}
+
+function make_usgs_url(paramCode){
+    return 'https://waterservices.usgs.gov/nwis/iv/?' +
+        'format=json&' +
+        'stateCd=nm&' +
+        'parameterCd=' + paramCode + '&' +
+        'siteStatus=all'
+}
 
 export default function MapComponent(props){
     const [sourceData, setSourceData] = useState({'nmbgmr_groundwater_levels': null,
-                        'usgs_groundwater_levels': null})
+                        'usgs_groundwater_levels': null,
+                        'usgs_stream_flow': null})
     const [layerVisibility, setLayerVisibility] = useState({'nmbgmr_groundwater_levels': 'visible',
-    'usgs_groundwater_levels': 'none'})
+    'usgs_groundwater_levels': 'none',
+    'usgs_stream_flow': 'none'})
     const [loading, setLoading] = useState(true)
     const mapRef = useRef();
 
@@ -49,10 +70,14 @@ export default function MapComponent(props){
     const handleSourceSelection = (e) => {
 
         console.log(e)
-        const visibility = {"usgs_groundwater_levels": e.usgs_groundwater_levels?.checked===true? 'visible': 'none',
-            "nmbgmr_groundwater_levels": e.nmbgmr_groundwater_levels?.checked===true? 'visible': 'none'}
-        setLayerVisibility({...visibility})
-
+        let vis = {}
+        for (const s of sources){
+            vis[s.tag] = e[s.tag]?.checked===true? 'visible': 'none'
+        }
+        // const visibility = {"usgs_groundwater_levels": e.usgs_groundwater_levels?.checked===true? 'visible': 'none',
+        //     "nmbgmr_groundwater_levels": e.nmbgmr_groundwater_levels?.checked===true? 'visible': 'none'}
+        // setLayerVisibility({...visibility})
+        setLayerVisibility({...vis})
     }
     const handleDownload = (format) => {
         format = 'csv'
@@ -90,28 +115,18 @@ export default function MapComponent(props){
             '?$filter=startswith(Things/Datastreams/name, \'Groundwater\')'+
             '&$expand=Things/Datastreams'
 
-        retrieveItems(url, [], 10).then(data => {
-            const nmbgmrgwl_locations = make_feature_collection(data)
+        retrieveItems(url, [], 10).then(nmbgmr_gwl_locations => {
             // get usgs gwl locations
+            fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
+                // get usgs stream locations
+                fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
+                    setSourceData({'nmbgmr_groundwater_levels': make_feature_collection(nmbgmr_gwl_locations),
+                        'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations),
+                        'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations)})
 
-            const usgs_url = 'https://waterservices.usgs.gov/nwis/iv/?' +
-                'format=json&' +
-                'stateCd=nm&' +
-                'parameterCd=72019&' +
-                'siteStatus=all'
-            fetch(usgs_url).then(res => res.json()).then(data => {
-                const usgs_locations = data.value.timeSeries.map((location) => {
-                    return {'name': location.sourceInfo.siteName,
-                            'location': {'type': 'Point',
-                                        'coordinates': [location.sourceInfo.geoLocation.geogLocation.longitude,
-                                                        location.sourceInfo.geoLocation.geogLocation.latitude]},
-                            'Things': [{'Datastreams': [{'name': 'Groundwater Level'}]}]}
+                    setLoading(false)
                 })
 
-                setSourceData({'nmbgmr_groundwater_levels': nmbgmrgwl_locations,
-                                    'usgs_groundwater_levels': make_feature_collection(usgs_locations)})
-
-                setLoading(false)
             })
         })
     }
@@ -138,7 +153,8 @@ export default function MapComponent(props){
     }, []);
 
     const sources = [{tag:'nmbgmr_groundwater_levels', color:'#6dcc9f'},
-        {tag:'usgs_groundwater_levels', color:'#cb77c7'}]
+        {tag:'usgs_groundwater_levels', color:'#cb77c7'},
+        {tag:'usgs_stream_flow', color:'#c24850'}]
 
     return (<div>
         <HelpSidebar visible={props.helpVisible} setVisible={props.setHelpVisible}/>
@@ -146,6 +162,9 @@ export default function MapComponent(props){
             <div style={{'flex': 1, padding:'10px'}}>
                 <Panel header='Layers' toggleable>
                     <SourceTree handleSourceSelection={handleSourceSelection}/>
+                </Panel>
+                <Panel header='Search' collapsed toggleable>
+                    <SearchControl/>
                 </Panel>
                 <Panel header='Download' collapsed toggleable>
                     <DownloadControl downloader={handleDownload}/>
