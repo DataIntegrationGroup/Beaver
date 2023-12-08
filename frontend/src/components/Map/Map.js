@@ -86,68 +86,73 @@ export default function MapComponent(props){
     // }, [])
 
     const handleSourceSelection = (e) => {
-        let vis = {}
         for (const s of sources){
-            if (e[s.tag]?.checked===true){
-                if (sourceData[s.tag]===null){
-                    switch (s.tag) {
-                        case 'nmbgmr_groundwater_levels_pressure':
-                            const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
-                                '?$filter=Things/Datastreams/name eq \'Groundwater Levels(Pressure)\''+
-                                '&$expand=Things/Datastreams'
-                            setLoading(true)
-                            retrieveItems(url, [], 1000).then(data => {
-                                setSourceData((prev)=>{ return {...prev,
-                                    'nmbgmr_groundwater_levels_pressure': make_feature_collection(data) }})
-                                setOSourceData((prev)=>{ return {...prev,
-                                    'nmbgmr_groundwater_levels_pressure': make_feature_collection(data) }})
-                                setLoading(false)
-                            })
-                            break;
-                        case 'nmbgmr_groundwater_levels_acoustic':
-                            const url2 ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
-                                '?$filter=Things/Datastreams/name eq \'Groundwater Levels(Acoustic)\''+
-                                '&$expand=Things/Datastreams'
-                            setLoading(true)
-                            retrieveItems(url2, [], 1000).then(data => {
-                                setSourceData((prev)=>{ return {...prev,
-                                    'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data) }})
-                                setOSourceData((prev)=>{ return {...prev,
-                                    'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data) }})
-                                setLoading(false)
-                            })
-                            break;
-                        case 'usgs_groundwater_levels':
-                            setLoading(true)
-                            fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
-                                setSourceData((prev)=>{ return {...prev,
-                                    'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations) }})
-                                setOSourceData((prev)=>{ return {...prev,
-                                    'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations) }})
-                                setLoading(false)
+            // set visiblity of layer
+            setLayerVisibility((prev)=>{ return {...prev,
+                [s.tag]: e[s.tag]?.checked===true? 'visible': 'none'}})
 
-                            })
-                            break;
-                        case 'usgs_stream_flow':
-                            setLoading(true)
-                            fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
-                                setSourceData((prev)=>{ return {...prev,
-                                    'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations) }})
-                                setOSourceData((prev)=>{ return {...prev,
-                                    'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations) }})
+            // skip if layer is not visible
+            if (e[s.tag]===undefined || e[s.tag].checked===false){
+                continue
+            }
 
-                                setLoading(false)
+            // lazy load source data
+            if (sourceData[s.tag]===null){
+                switch (s.tag) {
+                    case 'nmbgmr_groundwater_levels_pressure':
+                        const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
+                            '?$filter=Things/Datastreams/name eq \'Groundwater Levels(Pressure)\''+
+                            '&$expand=Things/Datastreams'
+                        setLoading(true)
+                        retrieveItems(url, [], 1000).then(data => {
+                            setSourceData((prev)=>{ return {...prev,
+                                'nmbgmr_groundwater_levels_pressure': make_feature_collection(data) }})
+                            setOSourceData((prev)=>{ return {...prev,
+                                'nmbgmr_groundwater_levels_pressure': make_feature_collection(data) }})
+                            setLoading(false)
+                        })
+                        break;
+                    case 'nmbgmr_groundwater_levels_acoustic':
+                        const url2 ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
+                            '?$filter=Things/Datastreams/name eq \'Groundwater Levels(Acoustic)\''+
+                            '&$expand=Things/Datastreams'
+                        setLoading(true)
+                        retrieveItems(url2, [], 1000).then(data => {
+                            setSourceData((prev)=>{ return {...prev,
+                                'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data) }})
+                            setOSourceData((prev)=>{ return {...prev,
+                                'nmbgmr_groundwater_levels_acoustic': make_feature_collection(data) }})
+                            setLoading(false)
+                        })
+                        break;
+                    case 'usgs_groundwater_levels':
+                        setLoading(true)
+                        fetch(make_usgs_url('72019')).then(res => res.json()).then(usgs_gwl_locations => {
+                            setSourceData((prev)=>{ return {...prev,
+                                'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations) }})
+                            setOSourceData((prev)=>{ return {...prev,
+                                'usgs_groundwater_levels': make_usgs_feature_collection(usgs_gwl_locations) }})
+                            setLoading(false)
 
-                            })
-                            break;
-                        default:
-                            break;
-                    }
+                        })
+                        break;
+                    case 'usgs_stream_flow':
+                        setLoading(true)
+                        fetch(make_usgs_url('00065')).then(res => res.json()).then(usgs_stream_locations => {
+                            setSourceData((prev)=>{ return {...prev,
+                                'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations) }})
+                            setOSourceData((prev)=>{ return {...prev,
+                                'usgs_stream_flow': make_usgs_feature_collection(usgs_stream_locations) }})
+
+                            setLoading(false)
+
+                        })
+                        break;
+                    default:
+                        break;
                 }
             }
-            vis[s.tag] = e[s.tag]?.checked===true? 'visible': 'none'
         }
-        setLayerVisibility(vis)
     }
 
     const setupMap = (map) => {
@@ -303,7 +308,7 @@ export default function MapComponent(props){
                 <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
                     <SearchControl/>
                 </Panel>
-                <Panel header={<div><span className={'panelicon pi pi-filter'}/>Search</div>} collapsed toggleable>
+                <Panel header={<div><span className={'panelicon pi pi-filter'}/>Filter</div>} collapsed toggleable>
                     <FilterControl county={county} setCounty={onCountySelect}/>
                 </Panel>
                 <Panel header={<div><span className={'panelicon pi pi-download'}/>Download</div>} collapsed toggleable>
@@ -312,84 +317,81 @@ export default function MapComponent(props){
             </div>
             <div style={{'flex': 2, padding:'10px'}}>
                 <Map
-                        ref={mapRef}
-                        // onLoad={(e)=>{
-                        //     console.log('map loaded')
-                        //     // setupMap(e.target)
-                        // }}
-                        mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
-                        initialViewState={{
-                            longitude: -106.4,
-                            latitude: 34.5,
-                            zoom: 6
-                        }}
-                        fog={{
-                            "range": [0.8, 8],
-                            // "color": "#f3dddd",
-                            "horizon-blend": 0.05,
-                            "high-color": "#245bde",
-                            "space-color": "#000000",
-                            "star-intensity": 0.95
-                        }}
-                        terrain={{source: 'mapbox-dem', exaggeration: 3}}
-                        projection={'globe'}
-                        style={{width: '100%', height: '650px'}}
-                        mapStyle="mapbox://styles/mapbox/streets-v9">
-                        {
-                            sources.map((s)=> (
-                            <Source id={s.tag} key={s.tag} type="geojson" data={sourceData[s.tag]}>
-                                <Layer
-                                    id= {s.tag}
-                                    type= 'circle'
-                                    paint= {{
-                                        'circle-radius': 4,
-                                        'circle-color': s.color,
-                                        'circle-stroke-color': 'black',
-                                        'circle-stroke-width': 1}}
-                                    layout={{visibility: layerVisibility[s.tag]}}
-                                />
-                            </Source>
-                            ))
-                        }
-                        <Source
-                            id={'selected_county'}
-                            type='geojson' data={sourceData['selected_county']}>
-                            <Layer type={'fill'}
-                            paint={{'fill-color': '#9ab7d5',
-                                    'fill-outline-color':'#000000',
-                                    'fill-opacity': 0.25}}>
-                            </Layer>
-                        </Source>
-                        <Source id={'mapbox-dem'}
-                            type="raster-dem"
-                            url="mapbox://mapbox.mapbox-terrain-dem-v1"
-                            tileSize={512}
-                            maxzoom={14}>
-                        </Source>
+                    ref={mapRef}
+                    mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
+                    initialViewState={{
+                        longitude: -106.4,
+                        latitude: 34.5,
+                        zoom: 6
+                    }}
+                    fog={{
+                        "range": [0.8, 8],
+                        // "color": "#f3dddd",
+                        "horizon-blend": 0.05,
+                        "high-color": "#245bde",
+                        "space-color": "#000000",
+                        "star-intensity": 0.95
+                    }}
+                    terrain={{source: 'mapbox-dem', exaggeration: 3}}
+                    projection={'globe'}
+                    style={{width: '100%', height: '650px'}}
+                    mapStyle="mapbox://styles/mapbox/streets-v9">
 
-                        // setup drawing tools
-                        <DrawControl
-                            position="top-left"
-                            displayControlsDefault={false}
-                            controls={{
-                                polygon: true,
-                                trash: true,
-                                combine_features: true,
-                                uncombine_features: true,
-                            }}
-                            defaultMode="draw_polygon"
-                            onCreate={onUpdate}
-                            onUpdate={onUpdate}
-                            onDelete={onDelete}
-                        />
+                    {
+                        sources.map((s)=> (
+                        <Source id={s.tag} key={s.tag} type="geojson" data={sourceData[s.tag]}>
+                            <Layer
+                                id= {s.tag}
+                                type= 'circle'
+                                paint= {{
+                                    'circle-radius': 4,
+                                    'circle-color': s.color,
+                                    'circle-stroke-color': 'black',
+                                    'circle-stroke-width': 1}}
+                                layout={{visibility: layerVisibility[s.tag]}}
+                            />
+                        </Source>
+                        ))
+                    }
+
+                    <Source
+                        id={'selected_county'}
+                        type='geojson' data={sourceData['selected_county']}>
+                        <Layer type={'fill'}
+                        paint={{'fill-color': '#9ab7d5',
+                                'fill-outline-color':'#000000',
+                                'fill-opacity': 0.25}}>
+                        </Layer>
+                    </Source>
+                    <Source id={'mapbox-dem'}
+                        type="raster-dem"
+                        url="mapbox://mapbox.mapbox-terrain-dem-v1"
+                        tileSize={512}
+                        maxzoom={14}>
+                    </Source>
+
+                    // setup drawing tools
+                    <DrawControl
+                        position="top-left"
+                        displayControlsDefault={false}
+                        controls={{
+                            polygon: true,
+                            trash: true,
+                            combine_features: true,
+                            uncombine_features: true,
+                        }}
+                        defaultMode="draw_polygon"
+                        onCreate={onUpdate}
+                        onUpdate={onUpdate}
+                        onDelete={onDelete}
+                    />
                         // setup navigation controls
-
                         <NavigationControl/>
                         {loading && <ProgressSpinner style={{position: 'fixed', top: '30%', left: '50%'}}/>}
-                    </Map>
-                </div>
+                </Map>
             </div>
         </div>
+    </div>
     )
     // return (
     //     <Container>
