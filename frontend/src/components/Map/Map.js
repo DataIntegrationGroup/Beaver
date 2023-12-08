@@ -1,4 +1,5 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
+import './Map.css'
 
 import {useCallback, useEffect, useRef, useState} from "react";
 import Map, {Layer, NavigationControl, Source, useMap} from 'react-map-gl';
@@ -295,16 +296,17 @@ export default function MapComponent(props){
         <HelpSidebar visible={props.helpVisible} setVisible={props.setHelpVisible}/>
             <div style={{'display': 'flex'}}>
             <div style={{'flex': 1, padding:'10px'}}>
-                <Panel header='Layers' toggleable>
+                <Panel header= {<div> <span className={'panelicon pi pi-clone'}/>Layer</div>}
+                           toggleable>
                     <SourceTree handleSourceSelection={handleSourceSelection}/>
                 </Panel>
-                <Panel header='Search' collapsed toggleable>
+                <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
                     <SearchControl/>
                 </Panel>
-                <Panel header='Filter' collapsed toggleable>
+                <Panel header={<div><span className={'panelicon pi pi-filter'}/>Search</div>} collapsed toggleable>
                     <FilterControl county={county} setCounty={onCountySelect}/>
                 </Panel>
-                <Panel header='Download' collapsed toggleable>
+                <Panel header={<div><span className={'panelicon pi pi-download'}/>Download</div>} collapsed toggleable>
                     <DownloadControl downloader={onDownload}/>
                 </Panel>
             </div>
