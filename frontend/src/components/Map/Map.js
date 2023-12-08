@@ -330,7 +330,7 @@ export default function MapComponent(props){
                             "star-intensity": 0.95
                         }}
                         terrain={{source: 'mapbox-dem', exaggeration: 3}}
-                        // projection={'globe'}
+                        projection={'globe'}
                         style={{width: '100%', height: '650px'}}
                         mapStyle="mapbox://styles/mapbox/streets-v9">
                         {
