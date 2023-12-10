@@ -80,6 +80,8 @@ export default function MapComponent(props){
     const [selected, setSelected] = useState(null)
     const [hydroCollapsed, setHydroCollapsed] = useState(true)
     const [data, setData] = useState(null)
+    const [searchKeyword, setSearchKeyword] = useState('')
+
     const mapRef = useRef();
 
     // useEffect(() => {
@@ -199,6 +201,40 @@ export default function MapComponent(props){
         //
         //     })
         // })
+    }
+    const onSearch = (keyword) => {
+        console.debug('searching', keyword)
+
+        // get all features that have name that contains the keyword
+        let all_features = {}
+        // for each visible source layer, filter by county
+        for (let s of sources){
+            if (osourceData[s.tag]===null){
+                console.debug('no data for source', s.tag)
+                continue
+            }
+            if (layerVisibility[s.tag]!=='visible'){
+                console.debug('layer not visible', s.tag)
+                continue
+            }
+            let ff;
+            ff = osourceData[s.tag].features.filter((f) => f.properties.name.toLowerCase().includes(keyword.toLowerCase()))
+            if (all_features[s.tag]===undefined){
+                all_features[s.tag] = {'type': 'FeatureCollection', 'features': ff}
+            }else{
+                all_features[s.tag].features.push(...ff)
+            }
+        }
+        console.log('all features', all_features)
+        setSourceData((prev)=>{
+            return {...prev, ...all_features}})
+
+    }
+
+    const onSearchClear = ()=>{
+        setSearchKeyword('')
+        setSourceData((prev)=>{
+            return {...prev, ...osourceData}})
     }
 
     const onDownload = (format) => {
@@ -371,7 +407,11 @@ export default function MapComponent(props){
                         <SourceTree handleSourceSelection={handleSourceSelection}/>
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
-                        <SearchControl/>
+                        <SearchControl keyword={searchKeyword}
+                                       setKeyword={setSearchKeyword}
+                                        onSearch={onSearch}
+                                       onClear={onSearchClear}
+                        />
                     </Panel>
                     <Panel header={"Well Info"} collapsed toggleable>
                         <WellInfo selected={selected}/>
