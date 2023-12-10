@@ -2,6 +2,7 @@ import {InputText} from "primereact/inputtext";
 import {Checkbox} from "primereact/checkbox";
 import {useEffect, useState} from "react";
 import {Dropdown} from "primereact/dropdown";
+import {MultiSelect} from "primereact/multiselect";
 
 export default function FilterControl({county, setCounty}){
     const [checked1, setChecked1] = useState(false);
@@ -26,10 +27,12 @@ export default function FilterControl({county, setCounty}){
                                     setChecked1(!checked1)
                                 }} />
                             </span>
-                <Dropdown value={county}
-                          options={counties}
-                          onChange={(e) => setCounty(e.value, checked1)}
-                          placeholder="Select a County" />
+                <MultiSelect
+                    display={'chip'}
+                    value={county}
+                    options={counties}
+                    onChange={(e) => setCounty(e.value, checked1)}
+                    placeholder="Select a County" />
             </div>
         </div>
     )

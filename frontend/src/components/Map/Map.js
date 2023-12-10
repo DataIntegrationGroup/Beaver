@@ -246,14 +246,19 @@ export default function MapComponent(props){
     }
 
     const onCountySelect = (e, enabled) => {
+        console.debug('on county select', e, enabled)
         if (e===null){
             return
         }
 
+
         // display selected county
         setCounty(e)
+        const c = {'type': 'FeatureCollection',
+                                            'features': e}
         setSourceData((prev)=>{ return {...prev,
-            'selected_county': e }})
+            'selected_county': c }})
+
 
         if (enabled===false){
             setSourceData((prev)=>{ return {...prev,
@@ -261,6 +266,7 @@ export default function MapComponent(props){
             return
         }
 
+        let all_features = {}
         // for each visible source layer, filter by county
         for (let s of sources){
             if (osourceData[s.tag]===null){
@@ -271,13 +277,21 @@ export default function MapComponent(props){
                 console.debug('layer not visible', s.tag)
                 continue
             }
-            let ff = osourceData[s.tag].features.filter((f) => turf.booleanPointInPolygon(f.geometry, e.geometry))
-
-            setSourceData((prev)=>{
-                return {...prev,
-                [s.tag]: {'type': 'FeatureCollection', 'features': ff}}})
+            let ff;
+            for (const ci of e){
+                ff = osourceData[s.tag].features.filter((f) => turf.booleanPointInPolygon(f.geometry, ci.geometry))
+                console.log(s.tag, ci, 'ff', ff)
+                if (ff.length>0){
+                    if (all_features[s.tag]===undefined){
+                        all_features[s.tag] = {'type': 'FeatureCollection', 'features': ff}
+                    }else{
+                        all_features[s.tag].features.push(...ff)
+                    }
+                }
+            }
         }
-
+        setSourceData((prev)=>{
+            return {...prev, ...all_features}})
     }
 
     const onUpdate = useCallback(e => {
@@ -344,7 +358,9 @@ export default function MapComponent(props){
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-chart-line'}/>Hydgrograph</div>}
                            onToggle={(e) => {setHydroCollapsed(e.value)}}
-                           collapsed={hydroCollapsed} toggleable>
+                            // collapsed
+                            collapsed={hydroCollapsed}
+                           toggleable>
                         <Hydrograph  selected={selected} data={data} setData={setData}/>
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-table'}/>Table</div>} collapsed toggleable>
