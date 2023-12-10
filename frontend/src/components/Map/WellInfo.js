@@ -27,7 +27,10 @@ export default function WellInfo({selected}){
 
     return (
         <DataTable value={rows}
-                     stripedRows>
+                     stripedRows
+            className={'smallTable'}
+                   size={'small'}
+        >
             <Column field={'key'} header={'Name'}></Column>
             <Column field={'value'} header={'Value'}></Column>
 

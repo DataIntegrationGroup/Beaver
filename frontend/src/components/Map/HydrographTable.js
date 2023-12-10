@@ -30,6 +30,8 @@ export default function HydrographTable({selected, data}){
             <DataTable value={rows}
                        stripedRows
                        paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50]}
+                          className={'smallTable'}
+                            size={'small'}
                       >
                 <Column field={'x'} header={'Time'}></Column>
                 <Column field={'y'} header={'Depth To Water (bgs)'}></Column>

@@ -25,6 +25,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import LocationTable from "./LocationTable";
 import {Card} from "primereact/card";
+import {InputSwitch} from "primereact/inputswitch";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -81,6 +82,7 @@ export default function MapComponent(props){
     const [hydroCollapsed, setHydroCollapsed] = useState(true)
     const [data, setData] = useState(null)
     const [searchKeyword, setSearchKeyword] = useState('')
+    const [heatmapEnabled, setHeatmapEnabled] = useState(false)
 
     const mapRef = useRef();
 
@@ -404,6 +406,10 @@ export default function MapComponent(props){
                 <div className={'col-4'} style={{padding: '20px'}}>
                     <Panel header= {<div> <span className={'panelicon pi pi-clone'}/>Layer</div>}
                                toggleable>
+                        <div className="flex align-items-center">
+                            <InputSwitch inputId={'heatmap'} checked={heatmapEnabled} onChange={(e) => setHeatmapEnabled(e.value)} />
+                            <label htmlFor="heatmap" className="ml-2">HeatMap</label>
+                        </div>
                         <SourceTree handleSourceSelection={handleSourceSelection}/>
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
@@ -483,6 +489,9 @@ export default function MapComponent(props){
                                     'circle-stroke-width': 1}}
                                 layout={{visibility: layerVisibility[s.tag]}}
                             />
+                            {heatmapEnabled && <Layer id={`${s.tag}.heatmap`}
+                                   layout={{visibility: layerVisibility[s.tag]}}
+                                   type={'heatmap'}/>}
                         </Source>
                         ))
                     }
