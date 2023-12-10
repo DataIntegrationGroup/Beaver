@@ -23,8 +23,6 @@ export default function HydrographTable({selected, data}){
         } catch (e) {
             console.log(e)
         }
-        // }
-
     }, [selected, data])
 
     return (
