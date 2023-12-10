@@ -26,6 +26,8 @@ function AppNavbar({setHelpVisible}) {
     const brand = <img src={nmwdi_logo}  height='80px'/>
     const home= {label: 'Home', icon: 'pi pi-fw pi-home', command: () => {window.location.href = '/'}}
     const dashboard= {label: 'Map', icon: 'pi pi-fw pi-map', command: () => {window.location.href = '/dashboard'}}
+    const documentation= {label: 'Docs', icon: 'pi pi-fw pi-question-circle', command: () => {window.location.href = '/docs'}}
+
     var loginout;
     if (isAuthenticated && userinfo){
         loginout = <Button label={"Logout"} onClick={() => logout()}/>
@@ -39,7 +41,7 @@ function AppNavbar({setHelpVisible}) {
     const items = [
         home,
         dashboard,
-        // loginout
+        documentation
     ]
     console.log('items', items)
     return (

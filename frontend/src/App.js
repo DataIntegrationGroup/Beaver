@@ -22,6 +22,7 @@ import {useState} from "react";
 import {Message} from "primereact/message";
 import {Button} from "primereact/button";
 import {Divider} from "primereact/divider";
+import Documentation from "./components/Documentation/Documentation";
 
 
 function Home() {
@@ -74,6 +75,7 @@ function App() {
                               helpVisible={helpVisible}
                               setHelpVisible={setHelpVisible}/>}/>
                           <Route path="/callback" element={<Callback />} />
+                          <Route path="/docs" element={<Documentation />} />
                           {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
                           {/*<Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>*/}
 
