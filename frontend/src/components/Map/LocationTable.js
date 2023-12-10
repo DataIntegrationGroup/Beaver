@@ -2,6 +2,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Card} from "primereact/card";
 import {useEffect, useState} from "react";
+import {Panel} from "primereact/panel";
 
 
 function dms(dd) {
@@ -45,7 +46,7 @@ export default function LocationTable({sourceData}) {
     }, [sourceData]);
 
     return (
-        <Card>
+        <Panel header={<div><span className={'panelicon pi pi-map-marker'}/>Locations</div>} collapsed toggleable>
             <DataTable
                 className={'smallTable'}
                 size={'small'} value={rows} stripedRows paginator rows={10}>
@@ -54,7 +55,7 @@ export default function LocationTable({sourceData}) {
                 <Column field={'latitude'} header={'Latitude'}></Column>
                 <Column field={'longitude'} header={'Longitude'}></Column>
             </DataTable>
-        </Card>
+        </Panel>
 
     )
 }
