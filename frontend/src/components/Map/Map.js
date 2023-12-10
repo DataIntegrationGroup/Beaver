@@ -26,6 +26,7 @@ import {Column} from "primereact/column";
 import LocationTable from "./LocationTable";
 import {Card} from "primereact/card";
 import {InputSwitch} from "primereact/inputswitch";
+import BaseMapControl from "./BaseMapControl";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -412,6 +413,10 @@ export default function MapComponent(props){
                         </div>
                         <SourceTree handleSourceSelection={handleSourceSelection}/>
                     </Panel>
+                    <Panel header={<div><span className={'panelicon pi pi-globe'}/>BaseMap</div>}
+                            collapsed toggleable>
+                        <BaseMapControl/>
+                    </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
                         <SearchControl keyword={searchKeyword}
                                        setKeyword={setSearchKeyword}
@@ -419,7 +424,8 @@ export default function MapComponent(props){
                                        onClear={onSearchClear}
                         />
                     </Panel>
-                    <Panel header={"Well Info"} collapsed toggleable>
+                    <Panel header={<div><span className={'panelicon pi pi-info-circle'}/>Well Info</div>}
+                           collapsed toggleable>
                         <WellInfo selected={selected}/>
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-filter'}/>Filter</div>} collapsed toggleable>
