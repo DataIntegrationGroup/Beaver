@@ -2,14 +2,14 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import './Map.css'
 
 import {useCallback, useEffect, useRef, useState} from "react";
-import Map, {Layer, NavigationControl, Source, useMap} from 'react-map-gl';
+import Map, {Layer, NavigationControl, Popup, Source, useMap} from 'react-map-gl';
 import {SourceTree} from "./SourceTree";
 // import {Col, Row} from "react-bootstrap";
 import {retrieveItems} from "../../util";
 import {ProgressSpinner} from "primereact/progressspinner";
 import DownloadControl from "./DownloadControl";
 import DrawControl from './DrawControl';
-
+import {DataView} from "primereact/dataview";
 import * as turf from '@turf/turf'
 import {downloadCSV, downloadTSV} from "../download_util";
 import {Panel} from "primereact/panel";
@@ -19,6 +19,10 @@ import SearchControl from "./SearchControl";
 import FilterControl from "./FilterControl";
 import Hydrograph from "./Hydrograph";
 import HydrographTable from "./HydrographTable";
+import WellInfo from "./WellInfo";
+import mapboxgl from "mapbox-gl";
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -314,6 +318,11 @@ export default function MapComponent(props){
         });
     }, []);
 
+    const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false
+    })
+
     const onMouseClick = (e) => {
         console.log('map click', e)
         const selected_point = getCurrentPoint(e)
@@ -324,13 +333,24 @@ export default function MapComponent(props){
         setSelected(selected_point)
         setHydroCollapsed(false)
     }
+
+    const [showPopup, setShowPopup] = useState(false)
+    const [popupData, setPopupData] = useState([])
+    const [popupCoordinates, setPopuCoordinates] = useState([0,0])
     const onMouseMove = (e) => {
         mapRef.current.getCanvas().style.cursor = 'crosshair';
         const selected_point = getCurrentPoint(e)
         if (selected_point===undefined){
+            // popup.remove()
+            setShowPopup(false)
             return
         }
         mapRef.current.getCanvas().style.cursor = 'pointer';
+        setPopuCoordinates(e.lngLat)
+
+        setPopupData([{key: 'Name', value:selected_point.properties.name},
+                            {key: 'Source', value: selected_point.source}])
+        setShowPopup(true)
     }
     const getCurrentPoint = (e)=>{
         const sourcenames = sources.map((s) => s.tag)
@@ -353,8 +373,16 @@ export default function MapComponent(props){
                     <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
                         <SearchControl/>
                     </Panel>
+                    <Panel header={"Well Info"} collapsed toggleable>
+                        <WellInfo selected={selected}/>
+                    </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-filter'}/>Filter</div>} collapsed toggleable>
                         <FilterControl county={county} setCounty={onCountySelect}/>
+                    </Panel>
+                    <Panel header={<div><span className={'panelicon pi pi-table'}/>Table</div>}
+                           collapsed
+                           toggleable>
+                        <HydrographTable selected={selected} data={data}/>
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-chart-line'}/>Hydgrograph</div>}
                            onToggle={(e) => {setHydroCollapsed(e.value)}}
@@ -362,9 +390,6 @@ export default function MapComponent(props){
                             collapsed={hydroCollapsed}
                            toggleable>
                         <Hydrograph  selected={selected} data={data} setData={setData}/>
-                    </Panel>
-                    <Panel header={<div><span className={'panelicon pi pi-table'}/>Table</div>} collapsed toggleable>
-                        <HydrographTable selected={selected} data={data}/>
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-download'}/>Download</div>} collapsed toggleable>
                         <DownloadControl downloader={onDownload}/>
@@ -456,7 +481,23 @@ export default function MapComponent(props){
                     />
                         // setup navigation controls
                         <NavigationControl/>
-                        {loading && <ProgressSpinner style={{position: 'fixed', top: '30%', left: '50%'}}/>}
+                        {loading && <ProgressSpinner className={'progressSpinnerOverlay'}/>}
+                        {showPopup && (<Popup latitude={popupCoordinates.lat}
+                                              longitude={popupCoordinates.lng}
+                                              maxWidth={500}
+                                              closeButton={false}>
+
+                                        <DataTable value={popupData} size={'small'}
+                                                   stripedRows
+                                                   showGridlines
+                                                   header={null}
+
+                                                  className={'popupTable'}
+                                        >
+                                             <Column field={'key'} header={'Attribute'}></Column>
+                                             <Column field={'value'} header={'Value'}></Column>
+                                         </DataTable>
+                        </Popup>)}
                 </Map>
             </div>
         </div>

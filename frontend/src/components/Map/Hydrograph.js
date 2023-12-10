@@ -1,6 +1,8 @@
 import Plot from 'react-plotly.js';
 import React, {useEffect, useState} from "react";
 import {retrieveItems} from "../../util";
+import {ProgressSpinner} from "primereact/progressspinner";
+import {OverlayPanel} from "primereact/overlaypanel";
 // import {Hourglass} from "react-loader-spinner";
 
 export default function Hydrograph({selected, data, setData}) {
@@ -49,7 +51,13 @@ export default function Hydrograph({selected, data, setData}) {
             const y = data.map((item) => {
                 return item.result
             })
-            return {x: x, y: y, mode: 'lines+markers', 'name': name}
+            const p = data.map((item) => {
+                return item.parameters
+            })
+            return {x: x,
+                y: y,
+                properties: p,
+                mode: 'lines+markers', 'name': name}
         }
 
         if (selected != null) {
@@ -58,16 +66,18 @@ export default function Hydrograph({selected, data, setData}) {
             let ds_name = 'Groundwater Levels(Pressure)'
 
             setLoading(true)
-            if (ds_name === null || ds_name === undefined) {
-                ds_name = ''
-                for (const ds of selected['datastreams']){
-                    if (ds.name === 'Groundwater Levels(Pressure)' || (ds.name === 'Groundwater Levels(Acoustic)')){
-                        ds_name = ds.name
-                        console.log('found', ds_name)
-                        break
-                    }
-                }
-            }
+            // if (ds_name === null || ds_name === undefined) {
+                // ds_name = ''
+                // for (const ds of selected['datastreams']){
+                //     if (ds.name === 'Groundwater Levels(Pressure)' || (ds.name === 'Groundwater Levels(Acoustic)')){
+                //         ds_name = ds.name
+                //         console.log('found', ds_name)
+                //         break
+                //     }
+                // }
+                // ds_name = selected['datastreams'].find((ds)=>
+                //     ds.name === 'Groundwater Levels(Pressure)' || ds.name === 'Groundwater Levels(Acoustic)'
+            // }
 
             get_ds_data('Continuous',  get_datastream_url(ds_name)).then(data => {
                 series.push(data)
@@ -83,24 +93,16 @@ export default function Hydrograph({selected, data, setData}) {
     }, [selected])
 
     return (
-        <div>
-            {/*<Hourglass*/}
-            {/*    height={80}*/}
-            {/*    width={80}*/}
-            {/*    color="#4fa94d"*/}
-            {/*    wrapperStyle={{}}*/}
-            {/*    wrapperClass="map-loading"*/}
-            {/*    visible={loading}*/}
-            {/*    ariaLabel='oval-loading'*/}
-            {/*    secondaryColor="#4fa94d"*/}
-            {/*    strokeWidth={2}*/}
-            {/*    strokeWidthSecondary={2}*/}
-            {/*/>*/}
+        <div className={'container'}>
+            {loading && <ProgressSpinner
+                strokeWidth={3}
+                className={'overlay'}/>}
             <Plot
                 divId={'hydrograph'}
                 data={data}
                 layout={layout}
-            />
+            >
+            </Plot>
         </div>
 
 

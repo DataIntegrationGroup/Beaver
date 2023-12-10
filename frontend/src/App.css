@@ -36,3 +36,27 @@
     transform: rotate(360deg);
   }
 }
+
+.container {
+  /*width: 100px;*/
+  /*height: 100px;*/
+  position: relative;
+}
+
+.overlay {
+  z-index: 10;
+  /*width: 100%;*/
+  /*height: 100%;*/
+  position: absolute;
+  left: 50%;
+  top: 30%
+}
+
+.popupTable .p-datatable-table{
+  font: 8pt Arial, sans-serif;
+}
+/*.progressSpinnerOverlay {*/
+/*  position: fixed;*/
+/*  bottom: 30%;*/
+/*  left: 50%*/
+/*}*/
