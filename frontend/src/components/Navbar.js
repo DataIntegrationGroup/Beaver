@@ -23,7 +23,7 @@ function AppNavbar({setHelpVisible}) {
         fiefAuth.logout(`${window.location.protocol}//${window.location.host}`);
     }, [fiefAuth]);
     // return (<Button  onClick={()=> setHelpVisible(true)} severity="help" label={"Help"}/>)
-    const brand = <img src={nmwdi_logo}  height='60px'/>
+    const brand = <img src={nmwdi_logo}  height='80px'/>
     const home= {label: 'Home', icon: 'pi pi-fw pi-home', command: () => {window.location.href = '/'}}
     const dashboard= {label: 'Map', icon: 'pi pi-fw pi-map', command: () => {window.location.href = '/dashboard'}}
     var loginout;

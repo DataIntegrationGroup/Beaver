@@ -30,14 +30,14 @@ function Home() {
                 <h1>Welcome to Beaver!</h1>
                 <img width="30%" src='https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg'/>
                 <p >
-                    Beaver is a data integration and discovery platform for the New Mexico Water Data Initiative.
+                    Beaver is a data integration and discovery platform for the <a href={'https://newmexicowaterdata.org'}>New Mexico Water Data Initiative</a>.
                     <br/>
                     <br/>
                     <Message text={'Beaver is currently in active development!!'} severity={'warn'}/>
                     <br/>
                     <br/>
 
-                    <Message text={"Check out the Map page to explore New Mexico water data"}/>
+                    <Message text={"Check out the Map page to explore New Mexico's water data"}/>
                     <br/>
                     {/*If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.*/}
                 </p>
@@ -47,6 +47,7 @@ function Home() {
                     <div className="text-900 font-bold text-5xl mb-3">Join Our Community</div>
                     <div className="text-700 text-2xl mb-5">We are a group of Water Data Specialists trying to improve the flow of data from producer to consumer</div>
                     <Button label="Join Now" icon="pi pi-slack"
+                            style={{marginBottom: '10px'}}
                             className="font-bold px-5 py-3 p-button-raised p-button-rounded white-space-nowrap"
                     onClick={() => window.open('https://new-mexico-water-data.slack.com', '_blank')}
                     />
