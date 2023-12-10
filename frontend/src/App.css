@@ -55,6 +55,10 @@
 .popupTable .p-datatable-table{
   font: 8pt Arial, sans-serif;
 }
+.smallTable .p-datatable-table{
+  font: 8pt Arial, sans-serif;
+}
+
 /*.progressSpinnerOverlay {*/
 /*  position: fixed;*/
 /*  bottom: 30%;*/

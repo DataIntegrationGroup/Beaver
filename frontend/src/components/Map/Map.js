@@ -23,6 +23,8 @@ import WellInfo from "./WellInfo";
 import mapboxgl from "mapbox-gl";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import LocationTable from "./LocationTable";
+import {Card} from "primereact/card";
 
 function make_feature_collection(locations){
     return {'type': 'FeatureCollection',
@@ -79,6 +81,7 @@ export default function MapComponent(props){
     const [hydroCollapsed, setHydroCollapsed] = useState(true)
     const [data, setData] = useState(null)
     const mapRef = useRef();
+    const [locations, setLocations] = useState([])
 
     // useEffect(() => {
     //     // const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
@@ -396,6 +399,7 @@ export default function MapComponent(props){
                     </Panel>
                 </div>
                 <div className={'col'} style={{padding: '20px'}}>
+                    <Card>
                 <Map
                     ref={mapRef}
                     mapboxAccessToken={"pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"}
@@ -481,6 +485,7 @@ export default function MapComponent(props){
                     />
                         // setup navigation controls
                         <NavigationControl/>
+
                         {loading && <ProgressSpinner className={'progressSpinnerOverlay'}/>}
                         {showPopup && (<Popup latitude={popupCoordinates.lat}
                                               longitude={popupCoordinates.lng}
@@ -499,6 +504,8 @@ export default function MapComponent(props){
                                          </DataTable>
                         </Popup>)}
                 </Map>
+                </Card>
+                    <LocationTable sourceData={sourceData}/>
             </div>
         </div>
     </div>
