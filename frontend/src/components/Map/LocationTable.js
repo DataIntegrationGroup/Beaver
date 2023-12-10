@@ -35,6 +35,7 @@ export default function LocationTable({sourceData}) {
                     name: f.properties.name,
                     latitude: lat,
                     longitude: lng,
+                    datasource: key
                 }
             })
             rs.push(...rr)
@@ -49,6 +50,7 @@ export default function LocationTable({sourceData}) {
                 className={'smallTable'}
                 size={'small'} value={rows} stripedRows paginator rows={10}>
                 <Column field={'name'} header={'Name'}></Column>
+                <Column field={'datasource'} header={'Source'}></Column>
                 <Column field={'latitude'} header={'Latitude'}></Column>
                 <Column field={'longitude'} header={'Longitude'}></Column>
             </DataTable>

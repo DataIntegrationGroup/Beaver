@@ -81,7 +81,6 @@ export default function MapComponent(props){
     const [hydroCollapsed, setHydroCollapsed] = useState(true)
     const [data, setData] = useState(null)
     const mapRef = useRef();
-    const [locations, setLocations] = useState([])
 
     // useEffect(() => {
     //     // const url ='https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations' +
@@ -252,15 +251,16 @@ export default function MapComponent(props){
         }
     }
 
-    const onCountySelect = (e, enabled) => {
-        console.debug('on county select', e, enabled)
-        if (e===null){
+    const onCountySelect = (evt, enabled) => {
+        console.debug('on county select', evt, enabled)
+        if (evt===null){
             return
         }
 
-
+        setCounty(evt)
+        const e = evt.map((f) => {return JSON.parse(f)})
+        console.debug('selected county', e)
         // display selected county
-        setCounty(e)
         const c = {'type': 'FeatureCollection',
                                             'features': e}
         setSourceData((prev)=>{ return {...prev,
@@ -287,13 +287,10 @@ export default function MapComponent(props){
             let ff;
             for (const ci of e){
                 ff = osourceData[s.tag].features.filter((f) => turf.booleanPointInPolygon(f.geometry, ci.geometry))
-                console.log(s.tag, ci, 'ff', ff)
-                if (ff.length>0){
-                    if (all_features[s.tag]===undefined){
-                        all_features[s.tag] = {'type': 'FeatureCollection', 'features': ff}
-                    }else{
-                        all_features[s.tag].features.push(...ff)
-                    }
+                if (all_features[s.tag]===undefined){
+                    all_features[s.tag] = {'type': 'FeatureCollection', 'features': ff}
+                }else{
+                    all_features[s.tag].features.push(...ff)
                 }
             }
         }
