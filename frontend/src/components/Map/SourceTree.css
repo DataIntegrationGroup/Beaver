@@ -4,9 +4,13 @@
 .nmbgmr_groundwater_levels_acoustic .p-highlight {
     background-color: #ccc46d;
 }
+.nmbgmr_groundwater_levels_manual .p-highlight {
+    background-color: #d5633a;
+}
 .usgs_groundwater_levels .p-highlight {
     background-color: #cb77c7;
 }
+
 .usgs_stream_flow .p-highlight {
     background-color: #c24850;
 }
