@@ -84,7 +84,7 @@ export default function MapComponent(props){
     const [data, setData] = useState(null)
     const [searchKeyword, setSearchKeyword] = useState('')
     const [heatmapEnabled, setHeatmapEnabled] = useState(false)
-
+    const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/satellite-streets-v11')
     const mapRef = useRef();
 
     // useEffect(() => {
@@ -415,7 +415,7 @@ export default function MapComponent(props){
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-globe'}/>BaseMap</div>}
                             collapsed toggleable>
-                        <BaseMapControl/>
+                        <BaseMapControl style={mapStyle} setStyle={setMapStyle}/>
                     </Panel>
                     <Panel header={<div><span className={'panelicon pi pi-search'}/>Search</div>} collapsed toggleable>
                         <SearchControl keyword={searchKeyword}
@@ -471,7 +471,7 @@ export default function MapComponent(props){
                     terrain={{source: 'mapbox-dem', exaggeration: 3}}
                     projection={'globe'}
                     style={{width: '100%', height: '650px'}}
-                    mapStyle="mapbox://styles/mapbox/streets-v9"
+                    mapStyle={mapStyle}
                     onMouseMove={onMouseMove}
                     onClick={onMouseClick}
                 >
