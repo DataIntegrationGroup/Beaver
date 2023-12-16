@@ -23,6 +23,7 @@ import {Message} from "primereact/message";
 import {Button} from "primereact/button";
 import {Divider} from "primereact/divider";
 import Documentation from "./components/Documentation/Documentation";
+import LocationDetail from "./components/LocationDetail";
 
 
 function Home() {
@@ -76,6 +77,7 @@ function App() {
                               setHelpVisible={setHelpVisible}/>}/>
                           <Route path="/callback" element={<Callback />} />
                           <Route path="/docs" element={<Documentation />} />
+                          <Route path='/location/:pointId' element={<RequireAuth><LocationDetail /></RequireAuth>}/>
                           {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
                           {/*<Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>*/}
 
