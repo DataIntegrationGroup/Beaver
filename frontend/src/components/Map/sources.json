@@ -1,0 +1,38 @@
+[
+  {
+    "key": "nmbgmr",
+    "label": "NMBGMR",
+    "children": [
+      {
+      "key": "nmbgmr_groundwater_levels_acoustic",
+      "label": "Acoustic",
+        "color": "#ccc46d"
+      },
+      {
+        "key": "nmbgmr_groundwater_levels_pressure",
+        "label": "Pressure",
+        "color": "#6dcc9f"
+      },
+      {
+        "key": "nmbgmr_groundwater_levels_manual",
+        "label": "Manual",
+        "color": "#d5633a"}
+      ]
+  },
+  {
+    "key": "usgs",
+    "label": "USGS",
+    "children": [
+      {
+        "key": "usgs_groundwater_levels",
+        "label": "Groundwater Levels",
+        "color": "#cb77c7"
+      },
+      {
+        "key": "usgs_stream_flow",
+        "label": "Stream Flow",
+        "color": "#c24850"
+      }
+    ]
+  }
+]
