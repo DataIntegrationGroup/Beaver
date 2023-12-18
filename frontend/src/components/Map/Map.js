@@ -34,11 +34,10 @@ import { Card } from "primereact/card";
 import { InputSwitch } from "primereact/inputswitch";
 import BaseMapControl from "./BaseMapControl";
 import StatsView from "./Stats";
-import SOURCES from './sources.json'
-import {make_feature_collection, make_usgs_feature_collection} from "./fc";
-
-
-
+import SOURCES from "./sources.json";
+import { make_feature_collection, make_usgs_feature_collection } from "./fc";
+import { redirect } from "react-router-dom";
+import { ContextMenu } from "primereact/contextmenu";
 
 function make_usgs_url(paramCode) {
   return (
@@ -52,21 +51,18 @@ function make_usgs_url(paramCode) {
   );
 }
 
-
-let sources =[]
+let sources = [];
 for (const s of SOURCES) {
   for (const c of s.children) {
-    sources.push({tag: c.key, color: c.color})
+    sources.push({ tag: c.key, color: c.color });
   }
 }
-
 
 const defaultSourceData = Object.fromEntries(sources.map((s) => [s.tag, null]));
 const defaultLayerVisibility = Object.fromEntries(
   sources.map((s) => [s.tag, "none"]),
 );
 export default function MapComponent(props) {
-
   const [sourceData, setSourceData] = useState({
     ...defaultSourceData,
     selected_county: null,
@@ -88,6 +84,26 @@ export default function MapComponent(props) {
     "mapbox://styles/mapbox/satellite-streets-v11",
   );
   const mapRef = useRef();
+  const cmRef = useRef();
+  const mapContextMenu = [
+    {
+      label: "Detail View",
+      icon: "pi pi-fw pi-info-circle",
+      command: (e) => {
+        console.log("detail view", e);
+        let sel = getCurrentPoint(e);
+        if (sel === undefined) {
+          return;
+        }
+
+        window.open("/location/" + sel.properties.name, "_blank");
+      },
+    },
+  ];
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupData, setPopupData] = useState([]);
+  const [popupCoordinates, setPopuCoordinates] = useState([0, 0]);
 
   const handleSourceSelection = (e) => {
     for (const s of sources) {
@@ -122,9 +138,10 @@ export default function MapComponent(props) {
             default:
               break;
           }
-          let url = `https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations`+
-                        `?$filter=Things/Datastreams/name eq '${name}'`+
-                        `&$expand=Things/Datastreams`;
+          let url =
+            `https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations` +
+            `?$filter=Things/Datastreams/name eq '${name}'` +
+            `&$expand=Things/Datastreams`;
           setLoading(true);
           retrieveItems(url, [], maxNum).then((data) => {
             setSourceData((prev) => {
@@ -389,6 +406,17 @@ export default function MapComponent(props) {
     closeOnClick: false,
   });
 
+  const onContextMenu = (e) => {
+    console.log("map click", e);
+    const selected_point = getCurrentPoint(e);
+    console.log("asdfasdf", selected_point);
+    if (selected_point === undefined) {
+      return;
+    }
+    setShowPopup(false);
+    cmRef.current.show(e.originalEvent);
+  };
+
   const onMouseClick = (e) => {
     console.log("map click", e);
     const selected_point = getCurrentPoint(e);
@@ -400,9 +428,6 @@ export default function MapComponent(props) {
     setHydroCollapsed(false);
   };
 
-  const [showPopup, setShowPopup] = useState(false);
-  const [popupData, setPopupData] = useState([]);
-  const [popupCoordinates, setPopuCoordinates] = useState([0, 0]);
   const onMouseMove = (e) => {
     mapRef.current.getCanvas().style.cursor = "crosshair";
     const selected_point = getCurrentPoint(e);
@@ -587,6 +612,7 @@ export default function MapComponent(props) {
               mapStyle={mapStyle}
               onMouseMove={onMouseMove}
               onClick={onMouseClick}
+              onContextMenu={onContextMenu}
             >
               {/*onMouseMove={onMouseMove}*/}
               {/*onClick={(e) => (*/}
@@ -659,6 +685,7 @@ export default function MapComponent(props) {
               />
               // setup navigation controls
               <NavigationControl />
+              <ContextMenu model={mapContextMenu} ref={cmRef} />
               {loading && (
                 <ProgressSpinner className={"progressSpinnerOverlay"} />
               )}
