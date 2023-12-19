@@ -36,11 +36,11 @@ import BaseMapControl from "./BaseMapControl";
 import StatsView from "./Stats";
 import SOURCES from "./sources.json";
 import { make_feature_collection, make_usgs_feature_collection } from "./fc";
-import { redirect } from "react-router-dom";
 import { ContextMenu } from "primereact/contextmenu";
 import GeocoderControl from "./GeocoderControl";
 
-const MAPBOXACCESSTOKEN="pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A"
+const MAPBOXACCESSTOKEN =
+  "pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A";
 
 function make_usgs_url(paramCode) {
   return (
@@ -58,8 +58,8 @@ let sources = [];
 for (const s of SOURCES) {
   for (const cc of s.children) {
     if (cc.children === undefined) {
-        sources.push({ tag: cc.key, color: cc.color });
-        continue;
+      sources.push({ tag: cc.key, color: cc.color });
+      continue;
     }
     for (const c of cc.children) {
       sources.push({ tag: c.key, color: c.color });
@@ -596,9 +596,7 @@ export default function MapComponent(props) {
           <Card>
             <Map
               ref={mapRef}
-              mapboxAccessToken={
-                MAPBOXACCESSTOKEN
-              }
+              mapboxAccessToken={MAPBOXACCESSTOKEN}
               initialViewState={{
                 longitude: -106.4,
                 latitude: 34.5,
@@ -677,10 +675,11 @@ export default function MapComponent(props) {
                 tileSize={512}
                 maxzoom={14}
               ></Source>
-
               // setup geocoder
-              <GeocoderControl mapboxAccessToken={MAPBOXACCESSTOKEN} position="top-left" />
-
+              <GeocoderControl
+                mapboxAccessToken={MAPBOXACCESSTOKEN}
+                position="top-left"
+              />
               // setup drawing tools
               <DrawControl
                 position="top-left"
@@ -696,18 +695,12 @@ export default function MapComponent(props) {
                 onUpdate={onUpdate}
                 onDelete={onDelete}
               />
-
               // setup navigation controls
               <NavigationControl />
-
               // setup context menu
               <ContextMenu model={mapContextMenu} ref={cmRef} />
-
               // setup loading indicator
-              {loading && (
-                <ProgressSpinner strokeWidth="8" />
-              )}
-
+              {loading && <ProgressSpinner strokeWidth="8" />}
               // setup popup
               {showPopup && (
                 <Popup

@@ -21,7 +21,7 @@
     "react-map-gl": "^7.1.6",
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^6.18.0",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/mapbox__mapbox-gl-geocoder": "^4.7.7",
     "prettier": "^3.1.1"
   }
 }
