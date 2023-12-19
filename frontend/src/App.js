@@ -31,7 +31,7 @@ function Home() {
             <div className={'text-center'}>
                 <h1>Welcome to Beaver!</h1>
                 <img width="30%" src='https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg'/>
-                <p >
+                <div>
                     Beaver is a data integration and discovery platform for the <a href={'https://newmexicowaterdata.org'}>New Mexico Water Data Initiative</a>.
                     <br/>
                     <br/>
@@ -42,7 +42,7 @@ function Home() {
                     <Message text={"Check out the Map page to explore New Mexico's water data"}/>
                     <br/>
                     {/*If you are interested in learning more about Beaver, please contact us at <a href="mailto:">EMAIL</a>.*/}
-                </p>
+                </div>
                 <Divider/>
                 <div className="surface-0 text-700 text-center">
                     {/*<div className="text-blue-600 font-bold mb-3"><i className="pi pi-discord"></i>&nbsp;POWERED BY DISCORD</div>*/}
