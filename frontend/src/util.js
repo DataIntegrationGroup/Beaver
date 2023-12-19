@@ -33,8 +33,11 @@ export async function retrieveItems(url, items = [], maxitems = null) {
   }
 }
 
-export async function nmbgmr_getJson(url) {
-  const newData = await fetch(url);
+export async function nmbgmr_getJson(url, token) {
+  const headers = {
+    Authorization: "Bearer " + token,
+  };
+  const newData = await fetch(url, { method: "GET", headers: headers });
   return await newData.json();
 }
 // ============= EOF =============================================

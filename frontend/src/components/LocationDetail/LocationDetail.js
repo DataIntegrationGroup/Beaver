@@ -14,11 +14,11 @@
 // limitations under the License.
 // ===============================================================================
 import "mapbox-gl/dist/mapbox-gl.css";
+import "./LocationDetail.css";
 
 import { useParams } from "react-router-dom";
 import { Panel } from "primereact/panel";
 import { useEffect, useRef, useState } from "react";
-import { nmbgmr_getJson } from "../util";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import Map, {
@@ -29,10 +29,16 @@ import Map, {
   Source,
   useMap,
 } from "react-map-gl";
-import { settings } from "../settings";
+import { useFiefAuth } from "@fief/fief/react";
+import { Carousel } from "primereact/carousel";
+
+import { nmbgmr_getJson } from "../../util";
+import { settings } from "../../settings";
 
 export default function LocationDetail() {
   const { pointId } = useParams();
+  const fiefAuth = useFiefAuth();
+
   const [locationInfo, setLocationInfo] = useState([
     { key: "Latitude", value: "" },
     { key: "Longitude", value: "" },
@@ -42,18 +48,61 @@ export default function LocationDetail() {
     latitude: 35,
     longitude: -106,
     elevation: 0,
-  }); // [longitude, latitude,
-  // elevation
+  });
   const [wellInfo, setWellInfo] = useState([
     { key: "Well Depth", value: "" },
     { key: "Well Bore Diameter", value: "" },
   ]);
+  const [equipment, setEquipment] = useState([
+    { type: "", model: "", serial: "", install_date: "", removal_date: "" },
+  ]);
+  const [ownerInfo, setOwnerInfo] = useState([
+    { key: "FirstName", value: "" },
+    { key: "LastName", value: "" },
+    { key: "OwnerKey", value: "" },
+    { key: "Email", value: "" },
+    { key: "CellPhone", value: "" },
+    { key: "Phone", value: "" },
+    { key: "MailingAddress", value: "" },
+    { key: "MailCity", value: "" },
+    { key: "MailState", value: "" },
+    { key: "MailZipCode", value: "" },
+    { key: "PhysicalAddress", value: "" },
+    { key: "PhysicalCity", value: "" },
+    { key: "PhysicalState", value: "" },
+    { key: "PhysicalZipCode", value: "" },
+    { key: "SecondLastName", value: "" },
+    { key: "SecondFirstName", value: "" },
+    { key: "SecondCtctEmail", value: "" },
+    { key: "SecondCtctPhone", value: "" },
+  ]);
+  const [photos, setPhotos] = useState([
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/1/11/American_Beaver%2C_tree_cutting.jpg",
+      caption: "American Beaver, tree cutting",
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg",
+      caption: "Beaver",
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/e/ed/Castor_canadensis1.jpg",
+      caption: "Castor canadensis",
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Castor_fiber_eating_in_Eskilstuna%2C_Sweden.jpg",
+      caption: "Castor fiber eating in Eskilstuna, Sweden",
+    },
+  ]);
 
   const mapRef = useRef(null);
 
-  // const [wellInfo, setWellInfo] = useState(null);
+  const auth_api_getJson = (url) => {
+    return nmbgmr_getJson(url, fiefAuth.token);
+  };
+
   useEffect(() => {
-    nmbgmr_getJson(`location/${pointId}`).then((data) => {
+    auth_api_getJson(`location/${pointId}`).then((data) => {
       const info = [
         { key: "Latitude", value: data["location"]["coordinates"][1] },
         { key: "Longitude", value: data["location"]["coordinates"][0] },
@@ -63,10 +112,42 @@ export default function LocationDetail() {
       setLocationInfo(info);
     });
 
-    nmbgmr_getJson(`well/${pointId}`).then((data) => {
+    auth_api_getJson(`well/${pointId}`).then((data) => {
       setWellInfo(data);
     });
+
+    auth_api_getJson(`equipment/${pointId}`).then((data) => {
+      setEquipment(data);
+    });
+
+    auth_api_getJson(`owner/${pointId}`).then((data) => {
+      setOwnerInfo(data);
+    });
+
+    auth_api_getJson(`photos/${pointId}`).then((data) => {
+      setPhotos(data);
+    });
   }, [pointId]);
+
+  const photoTemplate = (photo) => {
+    return (
+      <div className={"item"}>
+        <div className={"item-content"}>
+          <div className={"mb-3"}>
+            <img
+              src={photo.url}
+              alt={photo.caption}
+              className={"image"}
+              onError={(e) =>
+                (e.target.src =
+                  "https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png")
+              }
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -133,7 +214,15 @@ export default function LocationDetail() {
                 Equipment
               </div>
             }
-          ></Panel>
+          >
+            <DataTable value={equipment}>
+              <Column field={"type"} header={"Type"} />
+              <Column field={"model"} header={"Model"} />
+              <Column field={"serial"} header={"Serial No."} />
+              <Column field={"install_date"} header={"Install Date"} />
+              <Column field={"removal_date"} header={"Removal Date"} />
+            </DataTable>
+          </Panel>
         </div>
         <div className={"col-6"}>
           <Panel
@@ -143,7 +232,12 @@ export default function LocationDetail() {
                 Owner
               </div>
             }
-          ></Panel>
+          >
+            <DataTable value={ownerInfo}>
+              <Column field={"key"} header={"Name"} />
+              <Column field={"value"} header={"Type"} />
+            </DataTable>
+          </Panel>
         </div>
       </div>
       <div className={"flex flex-row"}>
@@ -168,7 +262,18 @@ export default function LocationDetail() {
               </div>
             }
             toggleable
-          ></Panel>
+          >
+            <div className={"photo_carousel"}>
+              <Carousel
+                circular
+                value={photos}
+                numVisible={3}
+                numScroll={3}
+                verticalViewPortHeight="360px"
+                itemTemplate={photoTemplate}
+              />
+            </div>
+          </Panel>
         </div>
       </div>
     </div>
