@@ -53,8 +53,14 @@ function make_usgs_url(paramCode) {
 
 let sources = [];
 for (const s of SOURCES) {
-  for (const c of s.children) {
-    sources.push({ tag: c.key, color: c.color });
+  for (const cc of s.children) {
+    if (cc.children === undefined) {
+        sources.push({ tag: cc.key, color: cc.color });
+        continue;
+    }
+    for (const c of cc.children) {
+      sources.push({ tag: c.key, color: c.color });
+    }
   }
 }
 
@@ -124,7 +130,7 @@ export default function MapComponent(props) {
       if (sourceData[s.tag] === null) {
         if (s.tag.startsWith("nmbgmr")) {
           let name;
-          let maxNum = 10000;
+          let maxNum = 100;
           switch (s.tag) {
             case "nmbgmr_groundwater_levels_pressure":
               name = "Groundwater Levels(Pressure)";
@@ -687,7 +693,7 @@ export default function MapComponent(props) {
               <NavigationControl />
               <ContextMenu model={mapContextMenu} ref={cmRef} />
               {loading && (
-                <ProgressSpinner className={"progressSpinnerOverlay"} />
+                <ProgressSpinner strokeWidth="8" />
               )}
               {showPopup && (
                 <Popup

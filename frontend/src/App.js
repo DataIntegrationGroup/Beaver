@@ -77,7 +77,8 @@ function App() {
                               setHelpVisible={setHelpVisible}/>}/>
                           <Route path="/callback" element={<Callback />} />
                           <Route path="/docs" element={<Documentation />} />
-                          <Route path='/location/:pointId' element={<RequireAuth><LocationDetail /></RequireAuth>}/>
+                          {/*<Route path='/location/:pointId' element={<RequireAuth><LocationPrivateDetail /></RequireAuth>}/>*/}
+                          <Route path='/location/:pointId' element={<LocationDetail />}/>
                           {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
                           {/*<Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>*/}
 
