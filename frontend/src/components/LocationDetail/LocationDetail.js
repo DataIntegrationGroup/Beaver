@@ -151,7 +151,9 @@ export default function LocationDetail() {
 
   return (
     <div>
-      <h1>Location Detail {pointId}</h1>
+      <div className={"text-center"}>
+        <h1>Location Detail {pointId}</h1>
+      </div>
 
       <div className={"flex flex-row"}>
         <div className={"col-4"}>
@@ -214,6 +216,8 @@ export default function LocationDetail() {
                 Equipment
               </div>
             }
+            collapsed
+            toggleable
           >
             <DataTable value={equipment}>
               <Column field={"type"} header={"Type"} />
@@ -232,6 +236,8 @@ export default function LocationDetail() {
                 Owner
               </div>
             }
+            collapsed
+            toggleable
           >
             <DataTable value={ownerInfo}>
               <Column field={"key"} header={"Name"} />
@@ -249,6 +255,8 @@ export default function LocationDetail() {
                 Hydrograph
               </div>
             }
+            collapsed
+            toggleable
           ></Panel>
         </div>
       </div>
