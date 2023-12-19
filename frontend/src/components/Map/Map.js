@@ -38,9 +38,7 @@ import SOURCES from "./sources.json";
 import { make_feature_collection, make_usgs_feature_collection } from "./fc";
 import { ContextMenu } from "primereact/contextmenu";
 import GeocoderControl from "./GeocoderControl";
-
-const MAPBOXACCESSTOKEN =
-  "pk.eyJ1IjoiamFrZXJvc3N3ZGkiLCJhIjoiY2s3M3ZneGl4MGhkMDNrcjlocmNuNWg4bCJ9.4r1DRDQ_ja0fV2nnmlVT0A";
+import { settings } from "../../settings";
 
 function make_usgs_url(paramCode) {
   return (
@@ -596,7 +594,7 @@ export default function MapComponent(props) {
           <Card>
             <Map
               ref={mapRef}
-              mapboxAccessToken={MAPBOXACCESSTOKEN}
+              mapboxAccessToken={settings.mapbox.token}
               initialViewState={{
                 longitude: -106.4,
                 latitude: 34.5,
@@ -677,7 +675,7 @@ export default function MapComponent(props) {
               ></Source>
               // setup geocoder
               <GeocoderControl
-                mapboxAccessToken={MAPBOXACCESSTOKEN}
+                mapboxAccessToken={settings.mapbox.token}
                 position="top-left"
               />
               // setup drawing tools
