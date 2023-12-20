@@ -8,16 +8,16 @@ import {
   useFiefIsAuthenticated,
   useFiefUserinfo,
 } from "@fief/fief/react";
-import {useCallback, useContext, useState} from "react";
+import { useCallback, useContext, useState } from "react";
 // import {Button} from "react-bootstrap";
 import user_logo from "../img/icon/user.png";
 import nmwdi_logo from "../img/nmwdi_logo11-23.png";
 import { Menubar } from "primereact/menubar";
 import { Avatar } from "primereact/avatar";
-import {InputSwitch} from "primereact/inputswitch";
-import {PrimeReactContext} from "primereact/api";
+import { InputSwitch } from "primereact/inputswitch";
+import { PrimeReactContext } from "primereact/api";
 
-function AppNavbar( ) {
+function AppNavbar() {
   const fiefAuth = useFiefAuth();
   const isAuthenticated = useFiefIsAuthenticated();
   const userinfo = useFiefUserinfo();
@@ -32,8 +32,11 @@ function AppNavbar( ) {
     fiefAuth.logout(`${window.location.protocol}//${window.location.host}`);
   }, [fiefAuth]);
   // return (<Button  onClick={()=> setHelpVisible(true)} severity="help" label={"Help"}/>)
-  const brand =
-      <a href={'http://newmexicowaterdata.org'}><img src={nmwdi_logo} height="80px" /></a>;
+  const brand = (
+    <a href={"http://newmexicowaterdata.org"}>
+      <img src={nmwdi_logo} height="80px" />
+    </a>
+  );
   const home = {
     label: "Home",
     icon: "pi pi-fw pi-home",
@@ -58,11 +61,12 @@ function AppNavbar( ) {
 
   const { changeTheme } = useContext(PrimeReactContext);
   const [checked, setChecked] = useState(false);
-  let [loginlabel, onClick] = isAuthenticated && userinfo ? ["Logout", logout] : ["Login", login];
+  let [loginlabel, onClick] =
+    isAuthenticated && userinfo ? ["Logout", logout] : ["Login", login];
 
   const makeTheme = (theme) => {
-      return `themes/${theme}/theme.css`
-  }
+    return `themes/${theme}/theme.css`;
+  };
 
   let loginout_div = (
     <div>
@@ -76,17 +80,26 @@ function AppNavbar( ) {
         checked={checked}
         onChange={(e) => {
           // let [currentTheme, newTheme] = e.value? ['soho-light', 'soho-dark'] : ['soho-dark', 'soho-light']
-          let [currentTheme, newTheme] = e.value? ['bootstrap4-light-blue', 'bootstrap4-dark-blue'] : ['bootstrap4-dark-blue', 'bootstrap4-light-blue']
-          changeTheme(makeTheme(currentTheme), makeTheme(newTheme), 'theme-link')
+          let [currentTheme, newTheme] = e.value
+            ? ["bootstrap4-light-blue", "bootstrap4-dark-blue"]
+            : ["bootstrap4-dark-blue", "bootstrap4-light-blue"];
+          changeTheme(
+            makeTheme(currentTheme),
+            makeTheme(newTheme),
+            "theme-link",
+          );
           setChecked(e.value);
-        }
-      }
+        }}
       ></InputSwitch>
-      {<Avatar
-        label={userinfo?.fields.username.substring(0, 1).toUpperCase()}
-        className="mr-2"
-        size="large"
-      ></Avatar> && userinfo}
+      {isAuthenticated && userinfo ? (
+        <Avatar
+          label={userinfo?.email.substring(0, 1).toUpperCase()}
+          className="mr-2"
+          size="large"
+        ></Avatar>
+      ) : (
+        ""
+      )}
       <Button label={loginlabel} onClick={onClick} icon={"pi pi-fw pi-user"} />
     </div>
   );

@@ -29,15 +29,24 @@ import Map, {
   Source,
   useMap,
 } from "react-map-gl";
-import { useFiefAuth } from "@fief/fief/react";
+import { useFiefAuth, useFiefTokenInfo } from "@fief/fief/react";
 import { Carousel } from "primereact/carousel";
 
 import { nmbgmr_getJson } from "../../util";
 import { settings } from "../../settings";
 
+function KeyValueTable({ value }) {
+  return (
+    <DataTable stripedRows size={"small"} value={value}>
+      <Column field={"key"} header={"Name"} />
+      <Column field={"value"} header={"Value"} />
+    </DataTable>
+  );
+}
+
 export default function LocationDetail() {
   const { pointId } = useParams();
-  const fiefAuth = useFiefAuth();
+  const tokenInfo = useFiefTokenInfo();
 
   const [locationInfo, setLocationInfo] = useState([
     { key: "Latitude", value: "" },
@@ -98,34 +107,76 @@ export default function LocationDetail() {
   const mapRef = useRef(null);
 
   const auth_api_getJson = (url) => {
-    return nmbgmr_getJson(url, fiefAuth.token);
+    return nmbgmr_getJson(url, tokenInfo.access_token);
   };
 
+  const toKeyValueRows = (data, excludes = []) => {
+    return Object.keys(data)
+      .filter((key) => !excludes.includes(key))
+      .map(function (key) {
+        return { key: key, value: data[key] };
+      });
+  };
   useEffect(() => {
-    auth_api_getJson(`location/${pointId}`).then((data) => {
-      const info = [
-        { key: "Latitude", value: data["location"]["coordinates"][1] },
-        { key: "Longitude", value: data["location"]["coordinates"][0] },
-        { key: "Elevation", value: data["location"]["coordinates"][2] },
-      ];
-      setCoordinates(data["location"]["coordinates"]);
-      setLocationInfo(info);
-    });
+    auth_api_getJson(`public/locations/info?pointid=${pointId}`).then(
+      (data) => {
+        console.log("inasd", data);
+        // const info = [
+        //   { key: "Latitude", value: data["location"]["coordinates"][1] },
+        //   { key: "Longitude", value: data["location"]["coordinates"][0] },
+        //   { key: "Elevation", value: data["location"]["coordinates"][2] },
+        // ];
 
-    auth_api_getJson(`well/${pointId}`).then((data) => {
-      setWellInfo(data);
-    });
+        mapRef.current.setCenter([
+          data["geometry"]["coordinates"][0],
+          data["geometry"]["coordinates"][1],
+        ]);
+        setCoordinates({
+          latitude: data["geometry"]["coordinates"][1],
+          longitude: data["geometry"]["coordinates"][0],
+          elevation: data["geometry"]["coordinates"][2],
+        });
 
-    auth_api_getJson(`equipment/${pointId}`).then((data) => {
+        let elevation = data["geometry"]["coordinates"][2];
+        let elevation_ft = elevation * 3.28084;
+        setLocationInfo([
+          { key: "Latitude", value: data["geometry"]["coordinates"][1] },
+          { key: "Longitude", value: data["geometry"]["coordinates"][0] },
+          {
+            key: "Elevation ft",
+            value: elevation_ft.toFixed(2),
+          },
+          { key: "Elevation Method", value: data["elevation_method"] },
+          { key: "Easting", value: data["Easting"] },
+          { key: "Northing", value: data["Northing"] },
+          {
+            key: "Public Release",
+            value: data["PublicRelease"] ? "Yes" : "No",
+          },
+          { key: "Site Names", value: data["SiteNames"] },
+        ]);
+        // setLocationInfo(info);
+      },
+    );
+
+    auth_api_getJson(`public/locations/well?pointid=${pointId}`).then(
+      (data) => {
+        let rows = toKeyValueRows(data, ["LocationId", "WellID", "PointID"]);
+        setWellInfo(rows);
+      },
+    );
+
+    auth_api_getJson(`locations/equipment?pointid=${pointId}`).then((data) => {
+      console.log("equipment", data);
       setEquipment(data);
     });
 
-    auth_api_getJson(`owner/${pointId}`).then((data) => {
-      setOwnerInfo(data);
+    auth_api_getJson(`locations/owners?pointid=${pointId}`).then((data) => {
+      setOwnerInfo(toKeyValueRows(data));
     });
 
     auth_api_getJson(`photos/${pointId}`).then((data) => {
-      setPhotos(data);
+      // setPhotos(data);
     });
   }, [pointId]);
 
@@ -192,18 +243,12 @@ export default function LocationDetail() {
               </div>
             }
           >
-            <DataTable value={locationInfo}>
-              <Column field={"key"} header={"Name"} />
-              <Column field={"value"} header={"Value"} />
-            </DataTable>
+            <KeyValueTable value={locationInfo} />
           </Panel>
         </div>
         <div className={"col-4"}>
           <Panel header={"Well Info"}>
-            <DataTable value={wellInfo}>
-              <Column field={"key"} header={"Name"} />
-              <Column field={"value"} header={"Value"} />
-            </DataTable>
+            <KeyValueTable value={wellInfo} />
           </Panel>
         </div>
       </div>
@@ -219,12 +264,12 @@ export default function LocationDetail() {
             collapsed
             toggleable
           >
-            <DataTable value={equipment}>
-              <Column field={"type"} header={"Type"} />
-              <Column field={"model"} header={"Model"} />
-              <Column field={"serial"} header={"Serial No."} />
-              <Column field={"install_date"} header={"Install Date"} />
-              <Column field={"removal_date"} header={"Removal Date"} />
+            <DataTable stripedRows size={"small"} value={equipment}>
+              <Column field={"EquipmentType"} header={"Type"} />
+              <Column field={"Model"} header={"Model"} />
+              <Column field={"SerialNo"} header={"Serial No."} />
+              <Column field={"DateInstalled"} header={"Install Date"} />
+              <Column field={"DateRemoved"} header={"Removal Date"} />
             </DataTable>
           </Panel>
         </div>
@@ -239,10 +284,7 @@ export default function LocationDetail() {
             collapsed
             toggleable
           >
-            <DataTable value={ownerInfo}>
-              <Column field={"key"} header={"Name"} />
-              <Column field={"value"} header={"Type"} />
-            </DataTable>
+            <KeyValueTable value={ownerInfo} />
           </Panel>
         </div>
       </div>

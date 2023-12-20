@@ -17,18 +17,17 @@ import { Callback, RequireAuth } from "./fief";
 import MapComponent from "./components/Map/Map";
 import { PrimeReactProvider } from "primereact/api";
 import Dashboard from "./components/Dashboard/Dashboard";
-import {useContext, useState} from "react";
+import { useContext, useState } from "react";
 import { Message } from "primereact/message";
 import { Button } from "primereact/button";
 import { Divider } from "primereact/divider";
 import Documentation from "./components/Documentation/Documentation";
 import LocationDetail from "./components/LocationDetail/LocationDetail";
-import { PrimeReactContext } from 'primereact/api';
+import { PrimeReactContext } from "primereact/api";
 
 //Use in a component
 
 // changeTheme(currentTheme: string, newTheme: string, linkElementId: string, callback: Function)
-
 
 function Home() {
   return (
@@ -82,45 +81,43 @@ function Home() {
   );
 }
 
-
-
 function App() {
   const [helpVisible, setHelpVisible] = useState(false);
 
-    return (
+  return (
     <PrimeReactProvider>
       <FiefAuthProvider
-        baseURL="https://fief.newmexicowaterdata.org/beaver"
-        clientId="M28sGi4ipk-tO-_HILFSMC-ENXk_VbDuinCgAgVKsow"
+        baseURL="https://fief.newmexicowaterdata.org"
+        clientId="buShmB5KqjE5kirVSz9J2g6of5O276OhHBzUcZLpGEA"
       >
-          <AppNavbar />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <Dashboard
-                    helpVisible={helpVisible}
-                    setHelpVisible={setHelpVisible}
-                  />
-                }
-              />
-              <Route path="/callback" element={<Callback />} />
-              <Route path="/docs" element={<Documentation />} />
-              {/*<Route path='/location/:pointId' element={<RequireAuth><LocationPrivateDetail /></RequireAuth>}/>*/}
-              <Route path="/location/:pointId" element={<LocationDetail />} />
-              {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
-              {/*<Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>*/}
+        <AppNavbar />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route
+              path="/dashboard"
+              element={
+                <Dashboard
+                  helpVisible={helpVisible}
+                  setHelpVisible={setHelpVisible}
+                />
+              }
+            />
+            <Route path="/callback" element={<Callback />} />
+            <Route path="/docs" element={<Documentation />} />
+            {/*<Route path='/location/:pointId' element={<RequireAuth><LocationPrivateDetail /></RequireAuth>}/>*/}
+            <Route path="/location/:pointId" element={<LocationDetail />} />
+            {/*<Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>}/>*/}
+            {/*<Route path="/processes" element={<RequireAuth><Processes /></RequireAuth>}/>*/}
 
-              {/*<Route path="/dashboard" element={<Dashboard auth={auth} setAuth={setAuth}/>}/>*/}
-              {/*<Route path="/preferences" element={<Preferences />}/>*/}
-              {/*<Route path="/admin" element={<Admin auth={auth}/>}/>*/}
-              {/*<Route path="/documentation" element={<Documentation />}/>*/}
-              {/*<Route path="/analytics" element={<Analytics />}/>*/}
-            </Routes>
-          </BrowserRouter>
-          <Footer />
+            {/*<Route path="/dashboard" element={<Dashboard auth={auth} setAuth={setAuth}/>}/>*/}
+            {/*<Route path="/preferences" element={<Preferences />}/>*/}
+            {/*<Route path="/admin" element={<Admin auth={auth}/>}/>*/}
+            {/*<Route path="/documentation" element={<Documentation />}/>*/}
+            {/*<Route path="/analytics" element={<Analytics />}/>*/}
+          </Routes>
+        </BrowserRouter>
+        <Footer />
       </FiefAuthProvider>
     </PrimeReactProvider>
   );

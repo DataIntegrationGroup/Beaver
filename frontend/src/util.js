@@ -14,6 +14,8 @@
 // limitations under the License.
 // ===============================================================================
 
+import { settings } from "./settings";
+
 export async function retrieveItems(url, items = [], maxitems = null) {
   if (maxitems != null && items.length >= maxitems) {
     return items;
@@ -35,8 +37,10 @@ export async function retrieveItems(url, items = [], maxitems = null) {
 
 export async function nmbgmr_getJson(url, token) {
   const headers = {
-    Authorization: "Bearer " + token,
+    Authorization: `Bearer ${token}`,
   };
+  // console.log(url, token);
+  url = `${settings.nmbgmr_api_url}${url}`;
   const newData = await fetch(url, { method: "GET", headers: headers });
   return await newData.json();
 }
