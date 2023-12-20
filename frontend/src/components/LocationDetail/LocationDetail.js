@@ -121,13 +121,6 @@ export default function LocationDetail() {
   useEffect(() => {
     auth_api_getJson(`public/locations/info?pointid=${pointId}`).then(
       (data) => {
-        console.log("inasd", data);
-        // const info = [
-        //   { key: "Latitude", value: data["location"]["coordinates"][1] },
-        //   { key: "Longitude", value: data["location"]["coordinates"][0] },
-        //   { key: "Elevation", value: data["location"]["coordinates"][2] },
-        // ];
-
         mapRef.current.setCenter([
           data["geometry"]["coordinates"][0],
           data["geometry"]["coordinates"][1],
@@ -156,7 +149,6 @@ export default function LocationDetail() {
           },
           { key: "Site Names", value: data["SiteNames"] },
         ]);
-        // setLocationInfo(info);
       },
     );
 
@@ -168,7 +160,7 @@ export default function LocationDetail() {
     );
 
     auth_api_getJson(`locations/equipment?pointid=${pointId}`).then((data) => {
-      console.log("equipment", data);
+      console.debug("equipment", data);
       setEquipment(data);
     });
 
@@ -177,7 +169,7 @@ export default function LocationDetail() {
     });
 
     async function getPhoto(photoid) {
-      console.log("url", photoid);
+      console.debug("url", photoid);
       const header = { Authorization: `Bearer ${tokenInfo.access_token}` };
       const response = await fetch(
         `${settings.nmbgmr_api_url}locations/photo/${photoid}`,
@@ -185,7 +177,7 @@ export default function LocationDetail() {
           headers: header,
         },
       );
-      console.log("response", response);
+      console.debug("response", response);
       return response.blob();
     }
 
