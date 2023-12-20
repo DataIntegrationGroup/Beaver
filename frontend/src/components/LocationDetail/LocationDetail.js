@@ -34,6 +34,7 @@ import { Carousel } from "primereact/carousel";
 
 import { nmbgmr_getJson } from "../../util";
 import { settings } from "../../settings";
+import { jsonsHeaders } from "react-csv/lib/core";
 
 function KeyValueTable({ value }) {
   return (
@@ -87,19 +88,19 @@ export default function LocationDetail() {
   ]);
   const [photos, setPhotos] = useState([
     {
-      url: "https://upload.wikimedia.org/wikipedia/commons/1/11/American_Beaver%2C_tree_cutting.jpg",
+      src: "https://upload.wikimedia.org/wikipedia/commons/1/11/American_Beaver%2C_tree_cutting.jpg",
       caption: "American Beaver, tree cutting",
     },
     {
-      url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg",
+      src: "https://upload.wikimedia.org/wikipedia/commons/6/6b/American_Beaver.jpg",
       caption: "Beaver",
     },
     {
-      url: "https://upload.wikimedia.org/wikipedia/commons/e/ed/Castor_canadensis1.jpg",
+      src: "https://upload.wikimedia.org/wikipedia/commons/e/ed/Castor_canadensis1.jpg",
       caption: "Castor canadensis",
     },
     {
-      url: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Castor_fiber_eating_in_Eskilstuna%2C_Sweden.jpg",
+      src: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Castor_fiber_eating_in_Eskilstuna%2C_Sweden.jpg",
       caption: "Castor fiber eating in Eskilstuna, Sweden",
     },
   ]);
@@ -175,9 +176,33 @@ export default function LocationDetail() {
       setOwnerInfo(toKeyValueRows(data));
     });
 
-    auth_api_getJson(`photos/${pointId}`).then((data) => {
-      // setPhotos(data);
-    });
+    async function getPhoto(photoid) {
+      console.log("url", photoid);
+      const header = { Authorization: `Bearer ${tokenInfo.access_token}` };
+      const response = await fetch(
+        `${settings.nmbgmr_api_url}locations/photo/${photoid}`,
+        {
+          headers: header,
+        },
+      );
+      console.log("response", response);
+      return response.blob();
+    }
+
+    auth_api_getJson(`locations/photos?pointid=${pointId}`).then(
+      async (data) => {
+        let photos = await Promise.all(
+          data.map(async (photo) => {
+            const resp = await getPhoto(photo.OLEPath);
+            return {
+              src: URL.createObjectURL(resp),
+              caption: photo.OLEPath,
+            };
+          }),
+        );
+        setPhotos(photos);
+      },
+    );
   }, [pointId]);
 
   const photoTemplate = (photo) => {
@@ -186,7 +211,7 @@ export default function LocationDetail() {
         <div className={"item-content"}>
           <div className={"mb-3"}>
             <img
-              src={photo.url}
+              src={photo.src}
               alt={photo.caption}
               className={"image"}
               onError={(e) =>
