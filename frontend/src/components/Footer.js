@@ -2,9 +2,7 @@
 export default function Footer(){
     return (
         <section>
-            <footer className={'text-center'}
-                    style={{'backgroundColor': '#efefef'}}
-            >
+            <footer className={'text-center'}>
                 <div className={'text-center p-3'}>
 
                 </div>

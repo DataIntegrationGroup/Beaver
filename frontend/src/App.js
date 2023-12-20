@@ -2,7 +2,7 @@ import logo from "./logo.svg";
 
 // import 'bootstrap/dist/css/bootstrap.min.css';
 import "./App.css";
-import "primereact/resources/themes/bootstrap4-light-blue/theme.css"; //theme
+// import "primereact/resources/themes/bootstrap4-light-blue/theme.css"; //theme
 import "primereact/resources/primereact.min.css"; //core css
 import "primeicons/primeicons.css"; //icons
 import "primeflex/primeflex.css"; //flex
@@ -17,12 +17,18 @@ import { Callback, RequireAuth } from "./fief";
 import MapComponent from "./components/Map/Map";
 import { PrimeReactProvider } from "primereact/api";
 import Dashboard from "./components/Dashboard/Dashboard";
-import { useState } from "react";
+import {useContext, useState} from "react";
 import { Message } from "primereact/message";
 import { Button } from "primereact/button";
 import { Divider } from "primereact/divider";
 import Documentation from "./components/Documentation/Documentation";
 import LocationDetail from "./components/LocationDetail/LocationDetail";
+import { PrimeReactContext } from 'primereact/api';
+
+//Use in a component
+
+// changeTheme(currentTheme: string, newTheme: string, linkElementId: string, callback: Function)
+
 
 function Home() {
   return (
@@ -75,17 +81,19 @@ function Home() {
     </div>
   );
 }
+
+
+
 function App() {
   const [helpVisible, setHelpVisible] = useState(false);
 
-  return (
+    return (
     <PrimeReactProvider>
       <FiefAuthProvider
         baseURL="https://fief.newmexicowaterdata.org/beaver"
         clientId="M28sGi4ipk-tO-_HILFSMC-ENXk_VbDuinCgAgVKsow"
       >
-        <div className="wrapper">
-          <AppNavbar setHelpVisible={setHelpVisible} />
+          <AppNavbar />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -113,7 +121,6 @@ function App() {
             </Routes>
           </BrowserRouter>
           <Footer />
-        </div>
       </FiefAuthProvider>
     </PrimeReactProvider>
   );

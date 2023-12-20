@@ -10,7 +10,12 @@
 /*    background: #e1f1f5;*/
 /*    margin: 0px;*/
 /*}*/
-/*.p-card-content {*/
-/*    padding: 0px;*/
-/*    margin: 0px;*/
-/*}*/
+
+.statscard .p-card-body {
+    padding: 5px;
+}
+.statscard .p-card-content {
+    padding: 0px;
+    /*margin: 0px;*/
+    /*background: red;*/
+}

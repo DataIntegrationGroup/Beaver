@@ -8,14 +8,16 @@ import {
   useFiefIsAuthenticated,
   useFiefUserinfo,
 } from "@fief/fief/react";
-import { useCallback } from "react";
+import {useCallback, useContext, useState} from "react";
 // import {Button} from "react-bootstrap";
 import user_logo from "../img/icon/user.png";
 import nmwdi_logo from "../img/nmwdi_logo11-23.png";
 import { Menubar } from "primereact/menubar";
 import { Avatar } from "primereact/avatar";
+import {InputSwitch} from "primereact/inputswitch";
+import {PrimeReactContext} from "primereact/api";
 
-function AppNavbar({ setHelpVisible }) {
+function AppNavbar( ) {
   const fiefAuth = useFiefAuth();
   const isAuthenticated = useFiefIsAuthenticated();
   const userinfo = useFiefUserinfo();
@@ -30,7 +32,8 @@ function AppNavbar({ setHelpVisible }) {
     fiefAuth.logout(`${window.location.protocol}//${window.location.host}`);
   }, [fiefAuth]);
   // return (<Button  onClick={()=> setHelpVisible(true)} severity="help" label={"Help"}/>)
-  const brand = <img src={nmwdi_logo} height="80px" />;
+  const brand =
+      <a href={'http://newmexicowaterdata.org'}><img src={nmwdi_logo} height="80px" /></a>;
   const home = {
     label: "Home",
     icon: "pi pi-fw pi-home",
@@ -53,15 +56,12 @@ function AppNavbar({ setHelpVisible }) {
     },
   };
 
-  let loginlabel;
-  let onClick;
-  if (isAuthenticated && userinfo) {
-    loginlabel = "Logout";
-    // loginout = <Button label={"Logout"} onClick={() => logout()} />;
-    onClick = logout;
-  } else {
-    loginlabel = "Login";
-    onClick = login;
+  const { changeTheme } = useContext(PrimeReactContext);
+  const [checked, setChecked] = useState(false);
+  let [loginlabel, onClick] = isAuthenticated && userinfo ? ["Logout", logout] : ["Login", login];
+
+  const makeTheme = (theme) => {
+      return `themes/${theme}/theme.css`
   }
 
   let loginout_div = (
@@ -72,18 +72,26 @@ function AppNavbar({ setHelpVisible }) {
       {/*  severity={"help"}*/}
       {/*  icon={"pi pi-fw pi-question"}*/}
       {/*/>*/}
-      <Avatar
-        label={userinfo.fields.username.substring(0, 1).toUpperCase()}
+      <InputSwitch
+        checked={checked}
+        onChange={(e) => {
+          // let [currentTheme, newTheme] = e.value? ['soho-light', 'soho-dark'] : ['soho-dark', 'soho-light']
+          let [currentTheme, newTheme] = e.value? ['bootstrap4-light-blue', 'bootstrap4-dark-blue'] : ['bootstrap4-dark-blue', 'bootstrap4-light-blue']
+          changeTheme(makeTheme(currentTheme), makeTheme(newTheme), 'theme-link')
+          setChecked(e.value);
+        }
+      }
+      ></InputSwitch>
+      {<Avatar
+        label={userinfo?.fields.username.substring(0, 1).toUpperCase()}
         className="mr-2"
         size="large"
-        // shape="circle"
-      ></Avatar>
+      ></Avatar> && userinfo}
       <Button label={loginlabel} onClick={onClick} icon={"pi pi-fw pi-user"} />
     </div>
   );
 
   const items = [home, dashboard, documentation];
-  console.log("items", items);
   return <Menubar model={items} start={brand} end={loginout_div} />;
 }
 

@@ -496,7 +496,7 @@ export default function MapComponent(props) {
           <Panel
             header={
               <div>
-                <span className={"panelicon pi pi-globe"} />
+                <span className={"panelicon pi pi-map"} />
                 BaseMap
               </div>
             }
@@ -588,8 +588,8 @@ export default function MapComponent(props) {
           </Panel>
         </div>
         <div className={"col"} style={{ padding: "20px" }}>
-          <Card>
-            <StatsView />
+          <Card className={'statscard'}>
+            <StatsView nMonitoringWells={10103} nStreamGauges={141} />
           </Card>
           <Card>
             <Map
