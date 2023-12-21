@@ -15,6 +15,8 @@
 // ===============================================================================
 
 import { settings } from "./settings";
+import axios from "axios";
+import { Fief } from "@fief/fief";
 
 export async function retrieveItems(url, items = [], maxitems = null) {
   if (maxitems != null && items.length >= maxitems) {
@@ -36,13 +38,65 @@ export async function retrieveItems(url, items = [], maxitems = null) {
 }
 
 export async function nmbgmr_getJson(url, token) {
+  const response = await nmbgmr_auth_fetch(url, token);
+  return response.data;
+}
+
+const api = axios.create();
+async function inteceptorError(error) {
+  const originalRequest = error.config;
+  // console.log('interceptor error:', error.response.status === 401 && !originalRequest._retry)
+
+  if (error.response?.status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true;
+    // const credentials = JSON.parse(sessionStorage.getItem('credentials'));
+    // const access_token = await loginUser(credentials);
+    // const access_token = authRefreshToken();
+    // const fief = new Fief(
+    //   settings.fief.url,
+    //   settings.fief.client_id,
+    //   settings.fief.client_secret,
+    // );
+
+    // const authstate = new FiefAuthState();
+    // const access_token = await fief.authRefreshToken();
+    // sessionStorage.setItem('token', JSON.stringify(access_token.data));
+    // const tokenInfo = storage.getTokenInfo();
+
+    const access_token = "fake token";
+    axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+    // console.log('intercepto', access_token.data)
+    originalRequest.headers["Authorization"] = `Bearer ${access_token}`;
+    return api(originalRequest);
+  }
+  return Promise.reject(error);
+}
+
+api.interceptors.response.use((response) => {
+  return response;
+}, inteceptorError);
+async function nmbgmr_auth_fetch(
+  url,
+  token,
+  method = "GET",
+  responseType = "json",
+) {
   const headers = {
     Authorization: `Bearer ${token}`,
   };
-  // console.log(url, token);
   url = `${settings.nmbgmr_api_url}${url}`;
-  const newData = await fetch(url, { method: "GET", headers: headers });
-  return await newData.json();
+  return await api.get(url, { headers: headers, responseType });
+}
+
+export async function getPhoto(photoid, token) {
+  console.debug("url", photoid);
+  const response = await nmbgmr_auth_fetch(
+    `locations/photo/${photoid}`,
+    token,
+    "GET",
+    "blob",
+  );
+  return response.data;
 }
 
 export function decimalToDMS(dd) {

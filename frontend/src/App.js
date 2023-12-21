@@ -24,6 +24,7 @@ import { Divider } from "primereact/divider";
 import Documentation from "./components/Documentation/Documentation";
 import LocationDetail from "./components/LocationDetail/LocationDetail";
 import { PrimeReactContext } from "primereact/api";
+import { settings } from "./settings";
 
 //Use in a component
 
@@ -87,8 +88,8 @@ function App() {
   return (
     <PrimeReactProvider>
       <FiefAuthProvider
-        baseURL="https://fief.newmexicowaterdata.org"
-        clientId="buShmB5KqjE5kirVSz9J2g6of5O276OhHBzUcZLpGEA"
+        baseURL={settings.fief.url}
+        clientId={settings.fief.client_id}
       >
         <AppNavbar />
         <BrowserRouter>

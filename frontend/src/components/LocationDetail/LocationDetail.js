@@ -32,13 +32,14 @@ import Map, {
 import { useFiefAuth, useFiefTokenInfo } from "@fief/fief/react";
 import { Carousel } from "primereact/carousel";
 
-import { decimalToDMS, nmbgmr_getJson } from "../../util";
+import { decimalToDMS, getPhoto, nmbgmr_getJson } from "../../util";
 import { settings } from "../../settings";
 import { jsonsHeaders } from "react-csv/lib/core";
 import { InputSwitch } from "primereact/inputswitch";
 import { Label } from "theme-ui";
 import { RadioButton } from "primereact/radiobutton";
 import { Galleria } from "primereact/galleria";
+import { InputTextarea } from "primereact/inputtextarea";
 
 function KeyValueTable({ value }) {
   return (
@@ -60,6 +61,8 @@ function KeyValueTable({ value }) {
 export default function LocationDetail() {
   const { pointId } = useParams();
   const tokenInfo = useFiefTokenInfo();
+  const [projects, setProjects] = useState([]);
+  const [notes, setNotes] = useState("");
   const [degreeMinutesSeconds, setDegreeMinutesSeconds] = useState(false);
   const [locationInfo, setLocationInfo] = useState([
     { key: "Latitude", value: "" },
@@ -146,6 +149,46 @@ export default function LocationDetail() {
         setLocationData(data);
       },
     );
+
+    auth_api_getJson(`public/locations/well?pointid=${pointId}`).then(
+      (data) => {
+        let rows = toKeyValueRows(data, ["LocationId", "WellID", "PointID"]);
+        setWellInfo(rows);
+      },
+    );
+
+    auth_api_getJson(`locations/equipment?pointid=${pointId}`).then((data) => {
+      console.debug("equipment", data);
+      setEquipment(data);
+    });
+
+    auth_api_getJson(`locations/owners?pointid=${pointId}`).then((data) => {
+      setOwnerInfo(toKeyValueRows(data));
+    });
+
+    auth_api_getJson(`locations/photos?pointid=${pointId}`).then(
+      async (data) => {
+        let photos = await Promise.all(
+          data.map(async (photo) => {
+            const resp = await getPhoto(photo.OLEPath);
+            return {
+              src: URL.createObjectURL(resp),
+              caption: photo.OLEPath,
+            };
+          }),
+        );
+        setPhotos(photos);
+      },
+    );
+
+    auth_api_getJson(`locations/projects?pointid=${pointId}`).then((data) => {
+      console.debug("projects", data);
+      setProjects(data);
+    });
+    auth_api_getJson(`locations/notes?pointid=${pointId}`).then((data) => {
+      console.debug("notes", data);
+      setNotes(data);
+    });
   }, [pointId]);
 
   useEffect(() => {
@@ -187,51 +230,10 @@ export default function LocationDetail() {
     ]);
   }, [degreeMinutesSeconds, locationData]);
 
-  useEffect(() => {
-    auth_api_getJson(`public/locations/well?pointid=${pointId}`).then(
-      (data) => {
-        let rows = toKeyValueRows(data, ["LocationId", "WellID", "PointID"]);
-        setWellInfo(rows);
-      },
-    );
-
-    auth_api_getJson(`locations/equipment?pointid=${pointId}`).then((data) => {
-      console.debug("equipment", data);
-      setEquipment(data);
-    });
-
-    auth_api_getJson(`locations/owners?pointid=${pointId}`).then((data) => {
-      setOwnerInfo(toKeyValueRows(data));
-    });
-
-    async function getPhoto(photoid) {
-      console.debug("url", photoid);
-      const header = { Authorization: `Bearer ${tokenInfo.access_token}` };
-      const response = await fetch(
-        `${settings.nmbgmr_api_url}locations/photo/${photoid}`,
-        {
-          headers: header,
-        },
-      );
-      console.debug("response", response);
-      return response.blob();
-    }
-
-    auth_api_getJson(`locations/photos?pointid=${pointId}`).then(
-      async (data) => {
-        let photos = await Promise.all(
-          data.map(async (photo) => {
-            const resp = await getPhoto(photo.OLEPath);
-            return {
-              src: URL.createObjectURL(resp),
-              caption: photo.OLEPath,
-            };
-          }),
-        );
-        setPhotos(photos);
-      },
-    );
-  }, [pointId]);
+  // useEffect(() => {
+  //
+  //
+  // }, [pointId]);
 
   // const photoTemplate = (photo) => {
   //   return (
@@ -351,11 +353,18 @@ export default function LocationDetail() {
             </div>
 
             <KeyValueTable value={locationInfo} />
+            <DataTable stripedRows className={"compact-table"} value={projects}>
+              <Column field={"ProjectName"} header={"Projects"} />
+            </DataTable>
           </Panel>
         </div>
         <div className={"col-4"}>
           <Panel header={"Well Info"}>
             <KeyValueTable value={wellInfo} />
+            <InputTextarea
+              style={{ height: "109px", width: "100%" }}
+              value={notes}
+            />
           </Panel>
         </div>
       </div>
