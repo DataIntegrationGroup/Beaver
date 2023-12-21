@@ -60,13 +60,15 @@ function AppNavbar() {
   };
 
   const { changeTheme } = useContext(PrimeReactContext);
-  const [checked, setChecked] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   let [loginlabel, onClick] =
     isAuthenticated && userinfo ? ["Logout", logout] : ["Login", login];
 
   const makeTheme = (theme) => {
     return `themes/${theme}/theme.css`;
   };
+  const [iconClassName, setIconClassName] = useState('pi-moon');
+
 
   let loginout_div = (
     <div>
@@ -76,21 +78,47 @@ function AppNavbar() {
       {/*  severity={"help"}*/}
       {/*  icon={"pi pi-fw pi-question"}*/}
       {/*/>*/}
-      <InputSwitch
-        checked={checked}
-        onChange={(e) => {
-          // let [currentTheme, newTheme] = e.value? ['soho-light', 'soho-dark'] : ['soho-dark', 'soho-light']
-          let [currentTheme, newTheme] = e.value
-            ? ["bootstrap4-light-blue", "bootstrap4-dark-blue"]
-            : ["bootstrap4-dark-blue", "bootstrap4-light-blue"];
+
+      {/*<InputSwitch*/}
+      {/*  checked={checked}*/}
+      {/*  onChange={(e) => {*/}
+      {/*    // let [currentTheme, newTheme] = e.value? ['soho-light', 'soho-dark'] : ['soho-dark', 'soho-light']*/}
+      {/*    let [currentTheme, newTheme] = e.value*/}
+      {/*      ? ["bootstrap4-light-blue", "bootstrap4-dark-blue"]*/}
+      {/*      : ["bootstrap4-dark-blue", "bootstrap4-light-blue"];*/}
+      {/*    changeTheme(*/}
+      {/*      makeTheme(currentTheme),*/}
+      {/*      makeTheme(newTheme),*/}
+      {/*      "theme-link",*/}
+      {/*    );*/}
+      {/*    setChecked(e.value);*/}
+      {/*  }}*/}
+      {/*>*/}
+      {/*  <i className={`dark:text-white pi ${iconClassName}`} />*/}
+      {/*</InputSwitch>*/}
+      {/*<button type="button" className="flex border-1 w-2rem h-2rem p-0 align-center justify-center"*/}
+      {/*        // onClick={onThemeToggler}*/}
+
+      {/*>*/}
+        <Button
+        onClick={(e)=>{
+          let [currentTheme, newTheme] = darkMode
+              ? ["bootstrap4-light-blue", "bootstrap4-dark-blue"]
+              : ["bootstrap4-dark-blue", "bootstrap4-light-blue"];
           changeTheme(
-            makeTheme(currentTheme),
-            makeTheme(newTheme),
-            "theme-link",
+              makeTheme(currentTheme),
+              makeTheme(newTheme),
+              "theme-link",
           );
-          setChecked(e.value);
+          setDarkMode((prevDarkMode) => !prevDarkMode);
+          setIconClassName((prevClasName) => (prevClasName === 'pi-moon' ? 'pi-sun' : 'pi-moon'));
         }}
-      ></InputSwitch>
+        >
+        <i className={`dark:text-white pi ${iconClassName}`} />
+        </Button>
+      {/*</button>*/}
+      <span style={{ padding: '10px'}}></span>
+
       {isAuthenticated && userinfo ? (
         <Avatar
           label={userinfo?.email.substring(0, 1).toUpperCase()}
