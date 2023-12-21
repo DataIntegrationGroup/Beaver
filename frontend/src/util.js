@@ -44,4 +44,12 @@ export async function nmbgmr_getJson(url, token) {
   const newData = await fetch(url, { method: "GET", headers: headers });
   return await newData.json();
 }
+
+export function decimalToDMS(dd) {
+  const deg = dd | 0; // truncate dd to get degrees
+  const frac = Math.abs(dd - deg); // get fractional part
+  const min = (frac * 60) | 0; // multiply fraction by 60 and truncate
+  const sec = frac * 3600 - min * 60;
+  return `${deg}° ${min}' ${sec.toFixed(2)}"`;
+}
 // ============= EOF =============================================

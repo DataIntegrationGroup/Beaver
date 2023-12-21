@@ -59,6 +59,10 @@
   font: 8pt Arial, sans-serif;
 }
 
+.compact-table td{
+  font-size: 12px;
+  padding: 3px;
+}
 /*.progressSpinnerOverlay {*/
 /*  position: fixed;*/
 /*  bottom: 30%;*/

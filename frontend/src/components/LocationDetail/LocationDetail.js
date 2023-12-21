@@ -18,7 +18,7 @@ import "./LocationDetail.css";
 
 import { useParams } from "react-router-dom";
 import { Panel } from "primereact/panel";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import Map, {
@@ -32,13 +32,24 @@ import Map, {
 import { useFiefAuth, useFiefTokenInfo } from "@fief/fief/react";
 import { Carousel } from "primereact/carousel";
 
-import { nmbgmr_getJson } from "../../util";
+import { decimalToDMS, nmbgmr_getJson } from "../../util";
 import { settings } from "../../settings";
 import { jsonsHeaders } from "react-csv/lib/core";
+import { InputSwitch } from "primereact/inputswitch";
+import { Label } from "theme-ui";
+import { RadioButton } from "primereact/radiobutton";
 
 function KeyValueTable({ value }) {
   return (
-    <DataTable stripedRows size={"small"} value={value}>
+    <DataTable
+      scrollable
+      scrollHeight={"353px"}
+      stripedRows
+      resizableColumns
+      size={"small"}
+      value={value}
+      className={"compact-table"}
+    >
       <Column field={"key"} header={"Name"} />
       <Column field={"value"} header={"Value"} />
     </DataTable>
@@ -48,7 +59,7 @@ function KeyValueTable({ value }) {
 export default function LocationDetail() {
   const { pointId } = useParams();
   const tokenInfo = useFiefTokenInfo();
-
+  const [degreeMinutesSeconds, setDegreeMinutesSeconds] = useState(false);
   const [locationInfo, setLocationInfo] = useState([
     { key: "Latitude", value: "" },
     { key: "Longitude", value: "" },
@@ -59,6 +70,8 @@ export default function LocationDetail() {
     longitude: -106,
     elevation: 0,
   });
+  const [locationData, setLocationData] = useState({});
+
   const [wellInfo, setWellInfo] = useState([
     { key: "Well Depth", value: "" },
     { key: "Well Bore Diameter", value: "" },
@@ -118,40 +131,62 @@ export default function LocationDetail() {
         return { key: key, value: data[key] };
       });
   };
-  useEffect(() => {
+
+  useMemo(() => {
+    // useMemo to load the location info.
+    // then useEffect with degreeMinutesSeconds as a dependency to switch between decimal and dms
     auth_api_getJson(`public/locations/info?pointid=${pointId}`).then(
       (data) => {
-        mapRef.current.setCenter([
-          data["geometry"]["coordinates"][0],
-          data["geometry"]["coordinates"][1],
-        ]);
         setCoordinates({
           latitude: data["geometry"]["coordinates"][1],
           longitude: data["geometry"]["coordinates"][0],
           elevation: data["geometry"]["coordinates"][2],
         });
-
-        let elevation = data["geometry"]["coordinates"][2];
-        let elevation_ft = elevation * 3.28084;
-        setLocationInfo([
-          { key: "Latitude", value: data["geometry"]["coordinates"][1] },
-          { key: "Longitude", value: data["geometry"]["coordinates"][0] },
-          {
-            key: "Elevation ft",
-            value: elevation_ft.toFixed(2),
-          },
-          { key: "Elevation Method", value: data["elevation_method"] },
-          { key: "Easting", value: data["Easting"] },
-          { key: "Northing", value: data["Northing"] },
-          {
-            key: "Public Release",
-            value: data["PublicRelease"] ? "Yes" : "No",
-          },
-          { key: "Site Names", value: data["SiteNames"] },
-        ]);
+        setLocationData(data);
       },
     );
+  }, [pointId]);
 
+  useEffect(() => {
+    if (Object.keys(locationData).length === 0) {
+      return;
+    }
+    mapRef.current.setCenter([
+      locationData["geometry"]["coordinates"][0],
+      locationData["geometry"]["coordinates"][1],
+    ]);
+
+    let elevation = locationData["geometry"]["coordinates"][2];
+    let elevation_ft = elevation * 3.28084;
+
+    let lat, lon;
+    if (degreeMinutesSeconds === true) {
+      lat = decimalToDMS(locationData["geometry"]["coordinates"][1], "lat");
+      lon = decimalToDMS(locationData["geometry"]["coordinates"][0], "lon");
+    } else {
+      lat = locationData["geometry"]["coordinates"][1].toFixed(6);
+      lon = locationData["geometry"]["coordinates"][0].toFixed(6);
+    }
+
+    setLocationInfo([
+      { key: "Latitude", value: lat },
+      { key: "Longitude", value: lon },
+      {
+        key: "Elevation ft",
+        value: elevation_ft.toFixed(2),
+      },
+      { key: "Elevation Method", value: locationData["elevation_method"] },
+      { key: "Easting", value: locationData["Easting"] },
+      { key: "Northing", value: locationData["Northing"] },
+      {
+        key: "Public Release",
+        value: locationData["PublicRelease"] ? "Yes" : "No",
+      },
+      { key: "Site Names", value: locationData["SiteNames"] },
+    ]);
+  }, [degreeMinutesSeconds, locationData]);
+
+  useEffect(() => {
     auth_api_getJson(`public/locations/well?pointid=${pointId}`).then(
       (data) => {
         let rows = toKeyValueRows(data, ["LocationId", "WellID", "PointID"]);
@@ -242,7 +277,7 @@ export default function LocationDetail() {
                 zoom: 10,
               }}
               mapStyle={"mapbox://styles/mapbox/satellite-streets-v11"}
-              style={{ width: "100%", height: "300px" }}
+              style={{ width: "100%", height: "353px" }}
             >
               <Marker
                 latitude={coordinates.latitude}
@@ -260,6 +295,32 @@ export default function LocationDetail() {
               </div>
             }
           >
+            {/*<InputSwitch*/}
+            {/*  id={"degree_minutes_seconds"}*/}
+            {/*  checked={degreeMinutesSeconds}*/}
+            {/*  onChange={(e) => setDegreeMinutesSeconds(e.value)}*/}
+            {/*/>{" "}*/}
+            <div style={{ padding: "10px" }}>
+              <RadioButton
+                inputId={"degree_minutes_seconds"}
+                value={"Degree Minutes Seconds"}
+                onChange={(e) => setDegreeMinutesSeconds(true)}
+                checked={degreeMinutesSeconds === true}
+              />
+              <label htmlFor="degree_minutes_seconds" className="ml-2">
+                Degree Minutes Seconds
+              </label>
+              <RadioButton
+                inputId={"decimal_degree"}
+                value={"Decimal Degree"}
+                onChange={(e) => setDegreeMinutesSeconds(false)}
+                checked={degreeMinutesSeconds === false}
+              />
+              <label htmlFor="decimal_degree" className="ml-2">
+                Decimal Degree
+              </label>
+            </div>
+
             <KeyValueTable value={locationInfo} />
           </Panel>
         </div>
@@ -281,7 +342,12 @@ export default function LocationDetail() {
             collapsed
             toggleable
           >
-            <DataTable stripedRows size={"small"} value={equipment}>
+            <DataTable
+              className={"compact-table"}
+              stripedRows
+              size={"small"}
+              value={equipment}
+            >
               <Column field={"EquipmentType"} header={"Type"} />
               <Column field={"Model"} header={"Model"} />
               <Column field={"SerialNo"} header={"Serial No."} />
