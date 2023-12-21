@@ -38,6 +38,7 @@ import { jsonsHeaders } from "react-csv/lib/core";
 import { InputSwitch } from "primereact/inputswitch";
 import { Label } from "theme-ui";
 import { RadioButton } from "primereact/radiobutton";
+import { Galleria } from "primereact/galleria";
 
 function KeyValueTable({ value }) {
   return (
@@ -232,23 +233,51 @@ export default function LocationDetail() {
     );
   }, [pointId]);
 
-  const photoTemplate = (photo) => {
+  // const photoTemplate = (photo) => {
+  //   return (
+  //     <div className={"item"}>
+  //       <div className={"item-content"}>
+  //         <div className={"mb-3"}>
+  //           <img
+  //             src={photo.src}
+  //             alt={photo.caption}
+  //             className={"image"}
+  //             onError={(e) =>
+  //               (e.target.src =
+  //                 "https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png")
+  //             }
+  //           />
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
+
+  const itemTemplate = (item) => {
     return (
-      <div className={"item"}>
-        <div className={"item-content"}>
-          <div className={"mb-3"}>
-            <img
-              src={photo.src}
-              alt={photo.caption}
-              className={"image"}
-              onError={(e) =>
-                (e.target.src =
-                  "https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png")
-              }
-            />
-          </div>
-        </div>
-      </div>
+      <img
+        src={item.src}
+        onError={(e) =>
+          (e.target.src =
+            "https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png")
+        }
+        alt={item.caption}
+        style={{ width: "60%" }}
+      />
+    );
+  };
+
+  const thumbnailTemplate = (item) => {
+    return (
+      <img
+        src={item.src}
+        onError={(e) =>
+          (e.target.src =
+            "https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png")
+        }
+        alt={item.caption}
+        style={{ width: "40%" }}
+      />
     );
   };
 
@@ -396,16 +425,24 @@ export default function LocationDetail() {
             }
             toggleable
           >
-            <div className={"photo_carousel"}>
-              <Carousel
-                circular
-                value={photos}
-                numVisible={3}
-                numScroll={3}
-                verticalViewPortHeight="360px"
-                itemTemplate={photoTemplate}
-              />
-            </div>
+            <Galleria
+              thumbnailsPosition="top"
+              circular
+              numVisible={5}
+              value={photos}
+              item={itemTemplate}
+              thumbnail={thumbnailTemplate}
+            />
+            {/*<div className={"photo_carousel"}>*/}
+            {/*  <Carousel*/}
+            {/*    circular*/}
+            {/*    value={photos}*/}
+            {/*    numVisible={3}*/}
+            {/*    numScroll={3}*/}
+            {/*    verticalViewPortHeight="360px"*/}
+            {/*    itemTemplate={photoTemplate}*/}
+            {/*  />*/}
+            {/*</div>*/}
           </Panel>
         </div>
       </div>
