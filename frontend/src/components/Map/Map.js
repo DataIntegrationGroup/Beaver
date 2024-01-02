@@ -588,8 +588,8 @@ export default function MapComponent(props) {
           </Panel>
         </div>
         <div className={"col"} style={{ padding: "20px" }}>
-          <Card className={'statscard'}>
-            <StatsView nMonitoringWells={10103} nStreamGauges={141} />
+          <Card className={"statscard"}>
+            <StatsView />
           </Card>
           <Card>
             <Map

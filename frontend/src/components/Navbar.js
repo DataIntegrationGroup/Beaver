@@ -23,9 +23,14 @@ function AppNavbar() {
   const userinfo = useFiefUserinfo();
 
   const login = useCallback(() => {
-    fiefAuth.redirectToLogin(
-      `${window.location.protocol}//${window.location.host}/callback`,
-    );
+    try {
+      fiefAuth.redirectToLogin(
+        `${window.location.protocol}//${window.location.host}/callback`,
+      );
+    } catch (error) {
+      console.log("login error", error);
+      logout();
+    }
   }, [fiefAuth]);
 
   const logout = useCallback(() => {
@@ -33,7 +38,7 @@ function AppNavbar() {
   }, [fiefAuth]);
   // return (<Button  onClick={()=> setHelpVisible(true)} severity="help" label={"Help"}/>)
   const brand = (
-    <a href={"http://newmexicowaterdata.org"}>
+    <a href={"https://newmexicowaterdata.org"}>
       <img src={nmwdi_logo} height="80px" />
     </a>
   );
@@ -67,57 +72,30 @@ function AppNavbar() {
   const makeTheme = (theme) => {
     return `themes/${theme}/theme.css`;
   };
-  const [iconClassName, setIconClassName] = useState('pi-moon');
-
+  const [iconClassName, setIconClassName] = useState("pi-sun");
 
   let loginout_div = (
     <div>
-      {/*<Button*/}
-      {/*  label={"Help"}*/}
-      {/*  onClick={() => setHelpVisible(true)}*/}
-      {/*  severity={"help"}*/}
-      {/*  icon={"pi pi-fw pi-question"}*/}
-      {/*/>*/}
-
-      {/*<InputSwitch*/}
-      {/*  checked={checked}*/}
-      {/*  onChange={(e) => {*/}
-      {/*    // let [currentTheme, newTheme] = e.value? ['soho-light', 'soho-dark'] : ['soho-dark', 'soho-light']*/}
-      {/*    let [currentTheme, newTheme] = e.value*/}
-      {/*      ? ["bootstrap4-light-blue", "bootstrap4-dark-blue"]*/}
-      {/*      : ["bootstrap4-dark-blue", "bootstrap4-light-blue"];*/}
-      {/*    changeTheme(*/}
-      {/*      makeTheme(currentTheme),*/}
-      {/*      makeTheme(newTheme),*/}
-      {/*      "theme-link",*/}
-      {/*    );*/}
-      {/*    setChecked(e.value);*/}
-      {/*  }}*/}
-      {/*>*/}
-      {/*  <i className={`dark:text-white pi ${iconClassName}`} />*/}
-      {/*</InputSwitch>*/}
-      {/*<button type="button" className="flex border-1 w-2rem h-2rem p-0 align-center justify-center"*/}
-      {/*        // onClick={onThemeToggler}*/}
-
-      {/*>*/}
-        <Button
-        onClick={(e)=>{
+      <Button
+        onClick={(e) => {
           let [currentTheme, newTheme] = darkMode
-              ? ["bootstrap4-light-blue", "bootstrap4-dark-blue"]
-              : ["bootstrap4-dark-blue", "bootstrap4-light-blue"];
+            ? ["bootstrap4-dark-blue", "bootstrap4-light-blue"]
+            : ["bootstrap4-light-blue", "bootstrap4-dark-blue"];
           changeTheme(
-              makeTheme(currentTheme),
-              makeTheme(newTheme),
-              "theme-link",
+            makeTheme(currentTheme),
+            makeTheme(newTheme),
+            "theme-link",
           );
           setDarkMode((prevDarkMode) => !prevDarkMode);
-          setIconClassName((prevClasName) => (prevClasName === 'pi-moon' ? 'pi-sun' : 'pi-moon'));
+          setIconClassName((prevClasName) =>
+            prevClasName === "pi-moon" ? "pi-sun" : "pi-moon",
+          );
         }}
-        >
+      >
         <i className={`dark:text-white pi ${iconClassName}`} />
-        </Button>
+      </Button>
       {/*</button>*/}
-      <span style={{ padding: '10px'}}></span>
+      <span style={{ padding: "10px" }}></span>
 
       {isAuthenticated && userinfo ? (
         <Avatar

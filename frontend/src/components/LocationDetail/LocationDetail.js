@@ -170,14 +170,22 @@ export default function LocationDetail() {
       async (data) => {
         let photos = await Promise.all(
           data.map(async (photo) => {
-            const resp = await getPhoto(photo.OLEPath);
-            return {
-              src: URL.createObjectURL(resp),
-              caption: photo.OLEPath,
-            };
+            try {
+              const resp = await getPhoto(
+                photo.OLEPath,
+                tokenInfo.access_token,
+              );
+              return {
+                src: URL.createObjectURL(resp),
+                caption: photo.OLEPath,
+              };
+            } catch (e) {
+              console.log("getPhoto error:", e);
+            }
           }),
         );
-        setPhotos(photos);
+
+        setPhotos(photos.filter((p) => p !== undefined));
       },
     );
 
@@ -264,7 +272,7 @@ export default function LocationDetail() {
             "https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png")
         }
         alt={item.caption}
-        style={{ width: "60%" }}
+        style={{ width: "500px" }}
       />
     );
   };
