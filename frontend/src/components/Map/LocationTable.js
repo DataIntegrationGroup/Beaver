@@ -15,7 +15,7 @@ export default function LocationTable({ sourceData }) {
     let rs = [];
 
     for (const [key, s] of Object.entries(sourceData)) {
-      console.log(key, s);
+      // console.log(key, s);
       if (s === null || s === undefined) {
         continue;
       }

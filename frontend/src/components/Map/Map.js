@@ -34,11 +34,18 @@ import { Card } from "primereact/card";
 import { InputSwitch } from "primereact/inputswitch";
 import BaseMapControl from "./BaseMapControl";
 import StatsView from "./Stats";
-import SOURCES from "./sources.json";
-import { make_feature_collection, make_usgs_feature_collection } from "./fc";
+import SOURCES from "./Sources";
+import {
+  make_cabq_feature_collection,
+  make_feature_collection,
+  make_usgs_feature_collection,
+} from "./fc";
 import { ContextMenu } from "primereact/contextmenu";
 import GeocoderControl from "./GeocoderControl";
 import { settings } from "../../settings";
+import { Toast } from "primereact/toast";
+import { ckanGetJson, ckanGetJsonSQL } from "../../ckanclient";
+import { st2GetLocations } from "../../st2client";
 
 function make_usgs_url(paramCode) {
   return (
@@ -52,19 +59,23 @@ function make_usgs_url(paramCode) {
   );
 }
 
+// ========================================================================
+// setup sources
 let sources = [];
-for (const s of SOURCES) {
-  for (const cc of s.children) {
-    if (cc.children === undefined) {
-      sources.push({ tag: cc.key, color: cc.color });
-      continue;
-    }
-    for (const c of cc.children) {
-      sources.push({ tag: c.key, color: c.color });
-    }
+const rfunc = (s) => {
+  if (s.children === undefined) {
+    sources.push({ label: s.label, tag: s.key, color: s.color });
+    return;
   }
-}
+  for (const cc of s.children) {
+    rfunc(cc);
+  }
+};
 
+for (const s of SOURCES) {
+  rfunc(s);
+}
+// ========================================================================
 const defaultSourceData = Object.fromEntries(sources.map((s) => [s.tag, null]));
 const defaultLayerVisibility = Object.fromEntries(
   sources.map((s) => [s.tag, "none"]),
@@ -85,6 +96,7 @@ export default function MapComponent(props) {
   const [selected, setSelected] = useState(null);
   const [hydroCollapsed, setHydroCollapsed] = useState(true);
   const [data, setData] = useState(null);
+  const [epaData, setEPAData] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [heatmapEnabled, setHeatmapEnabled] = useState(false);
   const [mapStyle, setMapStyle] = useState(
@@ -92,6 +104,7 @@ export default function MapComponent(props) {
   );
   const mapRef = useRef();
   const cmRef = useRef();
+  const toastRef = useRef();
   const mapContextMenu = [
     {
       label: "Detail View",
@@ -122,106 +135,188 @@ export default function MapComponent(props) {
         };
       });
 
+      console.debug("load source?", s);
       // skip if layer is not visible
       if (e[s.tag] === undefined || e[s.tag].checked === false) {
+        console.debug("skipping", s.tag, e);
         continue;
       }
 
       // lazy load source data
       if (sourceData[s.tag] === null) {
         if (s.tag.startsWith("nmbgmr")) {
-          let name;
-          let maxNum = 100;
-          switch (s.tag) {
-            case "nmbgmr_groundwater_levels_pressure":
-              name = "Groundwater Levels(Pressure)";
-              break;
-            case "nmbgmr_groundwater_levels_acoustic":
-              name = "Groundwater Levels(Acoustic)";
-              break;
-            case "nmbgmr_groundwater_levels_manual":
-              name = "Groundwater Levels";
-              break;
-            default:
-              break;
+          if (!loadNMBGMRData(s)) {
+            sourceNotAvailable(s);
           }
-          let url =
-            `https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations` +
-            `?$filter=Things/Datastreams/name eq '${name}'` +
-            `&$expand=Things/Datastreams`;
-          setLoading(true);
-          retrieveItems(url, [], maxNum).then((data) => {
-            setSourceData((prev) => {
-              return {
-                ...prev,
-                [s.tag]: make_feature_collection(data),
-              };
-            });
-            setOSourceData((prev) => {
-              return {
-                ...prev,
-                [s.tag]: make_feature_collection(data),
-              };
-            });
-            setLoading(false);
-          });
+        } else if (s.tag.startsWith("pvacd")) {
+          if (!loadPVACDData(s)) {
+            sourceNotAvailable(s);
+          }
+        } else if (s.tag.startsWith("cabq")) {
+          if (!loadCABQData(s)) {
+            sourceNotAvailable(s);
+          }
+        } else if (s.tag.startsWith("usgs")) {
+          if (!loadUSGSData(s)) {
+            sourceNotAvailable(s);
+          }
+        } else if (s.tag.startsWith("wqp")) {
+          if (!loadWQPData(s)) {
+            sourceNotAvailable(s);
+          }
         } else {
-          switch (s.tag) {
-            case "usgs_groundwater_levels":
-              setLoading(true);
-              fetch(make_usgs_url("72019"))
-                .then((res) => res.json())
-                .then((usgs_gwl_locations) => {
-                  setSourceData((prev) => {
-                    return {
-                      ...prev,
-                      usgs_groundwater_levels:
-                        make_usgs_feature_collection(usgs_gwl_locations),
-                    };
-                  });
-                  setOSourceData((prev) => {
-                    return {
-                      ...prev,
-                      usgs_groundwater_levels:
-                        make_usgs_feature_collection(usgs_gwl_locations),
-                    };
-                  });
-                  setLoading(false);
-                });
-              break;
-            case "usgs_stream_flow":
-              setLoading(true);
-              fetch(make_usgs_url("00065"))
-                .then((res) => res.json())
-                .then((usgs_stream_locations) => {
-                  setSourceData((prev) => {
-                    return {
-                      ...prev,
-                      usgs_stream_flow: make_usgs_feature_collection(
-                        usgs_stream_locations,
-                      ),
-                    };
-                  });
-                  setOSourceData((prev) => {
-                    return {
-                      ...prev,
-                      usgs_stream_flow: make_usgs_feature_collection(
-                        usgs_stream_locations,
-                      ),
-                    };
-                  });
-
-                  setLoading(false);
-                });
-              break;
-            default:
-              break;
-          }
+          sourceNotAvailable(s);
         }
       }
     }
   };
 
+  const loadPVACDData = (s) => {
+    setLoading(true);
+    // get the locations from st2
+    st2GetLocations("PVACD").then((data) => {
+      console.log("pvacd data", data);
+
+      // todo filter out invalid locations
+      _setData(s.tag, make_feature_collection(data));
+      setLoading(false);
+    });
+    return true;
+  };
+  const loadWQPData = (s) => {
+    if (s.tag === "wqp_epa") {
+      loadEPAData(s);
+      return true;
+    }
+  };
+
+  const loadEPAData = (s) => {
+    setLoading(true);
+    let url =
+      "https://www.waterqualitydata.us/ogcservices/wfs/?request=GetFeature&service=wfs&version=2.0.0&" +
+      "typeNames=wqp_sites&" +
+      "SEARCHPARAMS=statecode:US:35;providers:STORET&" +
+      "outputFormat=application/json";
+
+    fetch(url)
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        _setData(s.tag, data);
+        setLoading(false);
+      });
+  };
+
+  const loadCABQData = (s) => {
+    console.log(s);
+    let args = s.tag.split(":");
+    let analyte = args.pop();
+    let group = args.pop();
+    console.log(group, analyte);
+
+    if (group === "wq") {
+      let resource = "cb402046-86d0-4c5b-a3ea-1d255674be3f";
+      let where = `chemical_name = '${analyte}'`;
+      ckanGetJsonSQL(resource, where).then((data) => {
+        _setData(s.tag, make_cabq_feature_collection(data));
+      });
+
+      return true;
+    } else if (group === "gw") {
+      console.log("load gw data not yet implemented");
+    }
+  };
+
+  const _setData = (tag, locations) => {
+    console.log(tag, locations);
+    setSourceData((prev) => {
+      return {
+        ...prev,
+        [tag]: locations,
+      };
+    });
+    setOSourceData((prev) => {
+      return {
+        ...prev,
+        [tag]: locations,
+      };
+    });
+  };
+
+  const loadUSGSData = (s) => {
+    let args = s.tag.split(":");
+    let obsprop = args.pop();
+    let obsgroup = args.pop();
+    let supergroup = args.pop();
+    console.log("load usgs data", obsgroup, obsprop, supergroup);
+    let paramCode;
+
+    if (obsgroup === "gw") {
+      if (obsprop === "instantaneous") {
+        paramCode = "72019";
+      }
+    } else if (obsgroup === "sw") {
+      paramCode = "00065";
+    }
+
+    if (paramCode === undefined) {
+      return false;
+    }
+    setLoading(true);
+    fetch(make_usgs_url(paramCode))
+      .then((res) => res.json())
+      .then((usgs_stream_locations) => {
+        _setData(s.tag, make_usgs_feature_collection(usgs_stream_locations));
+        setLoading(false);
+      });
+
+    return true;
+  };
+
+  const loadNMBGMRData = (s) => {
+    let name;
+    let maxNum = 100;
+    console.log("source", s);
+    let args = s.tag.split(":");
+    let obsprop = args.pop();
+    let obsgroup = args.pop();
+    let supergroup = args.pop();
+
+    if (obsgroup === "gw") {
+      if (obsprop === "manual") {
+        name = "Groundwater Levels";
+      } else if (obsprop === "acoustic") {
+        name = "Groundwater Levels(Acoustic)";
+      } else if (obsprop === "pressure") {
+        name = "Groundwater Levels(Pressure)";
+      }
+    }
+
+    if (name === undefined) {
+      return;
+    }
+
+    let url =
+      `https://st2.newmexicowaterdata.org/FROST-Server/v1.1/Locations` +
+      `?$filter=Things/Datastreams/name eq '${name}'` +
+      `&$expand=Things/Datastreams`;
+    setLoading(true);
+    retrieveItems(url, [], maxNum).then((data) => {
+      _setData(s.tag, make_feature_collection(data));
+      setLoading(false);
+    });
+
+    return true;
+  };
+  const sourceNotAvailable = (s) => {
+    toastRef.current.show({
+      severity: "warn",
+      summary: "Warning",
+      detail: `Source "${s.label}" not yet available`,
+      life: 3000,
+    });
+  };
   const onSearch = (keyword) => {
     console.debug("searching", keyword);
 
@@ -464,12 +559,33 @@ export default function MapComponent(props) {
     return selected_point;
   };
 
+  // useEffect(() => {
+  //   setLoading(true);
+  //   let url =
+  //     "https://www.waterqualitydata.us/ogcservices/wfs/?request=GetFeature&service=wfs&version=2.0.0&" +
+  //     "typeNames=wqp_sites&" +
+  //     "SEARCHPARAMS=statecode:US:35;providers:STORET&" +
+  //     "outputFormat=application/json";
+  //
+  //   fetch(url)
+  //     .then((res) => {
+  //       return res.json();
+  //     })
+  //     .then((data) => {
+  //       console.log(data);
+  //       setEPAData(data);
+  //       setLoading(false);
+  //     });
+  // }, []);
+
   return (
     <div>
       <HelpSidebar
         visible={props.helpVisible}
         setVisible={props.setHelpVisible}
       />
+      <Toast ref={toastRef} />
+
       <div className={"grid"}>
         <div className={"col-4"} style={{ padding: "20px" }}>
           <Panel
@@ -591,7 +707,7 @@ export default function MapComponent(props) {
           <Card className={"statscard"}>
             <StatsView />
           </Card>
-          <Card>
+          <Card className={"mapcard"}>
             <Map
               ref={mapRef}
               mapboxAccessToken={settings.mapbox.token}
@@ -619,12 +735,6 @@ export default function MapComponent(props) {
               onClick={onMouseClick}
               onContextMenu={onContextMenu}
             >
-              {/*onMouseMove={onMouseMove}*/}
-              {/*onClick={(e) => (*/}
-              {/*        console.log('map click', e)*/}
-              {/*        // setSelected(e.features[0])*/}
-              {/*        )*/}
-              {/*    }*/}
               {sources.map((s) => (
                 <Source
                   id={s.tag}
@@ -637,7 +747,7 @@ export default function MapComponent(props) {
                     type="circle"
                     paint={{
                       "circle-radius": 4,
-                      "circle-color": s.color,
+                      "circle-color": s.color ? s.color : "blue",
                       "circle-stroke-color": "black",
                       "circle-stroke-width": 1,
                     }}

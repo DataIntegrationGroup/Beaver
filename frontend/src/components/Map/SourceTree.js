@@ -2,25 +2,24 @@ import { Tree } from "primereact/tree";
 import { useEffect, useState } from "react";
 import "./SourceTree.css";
 
-import sources from './sources.json'
+import sources from "./Sources";
 
 export function SourceTree({ handleSourceSelection }) {
   const [nodes, setNodes] = useState(null);
 
   useEffect(() => {
-
     const tonode = (source) => {
-        return {
-            key: source.key,
-            label: source.label,
-            className: source.key,
-            children: source.children?.map((child) => tonode(child))
-        };
-    }
+      return {
+        key: source.key,
+        label: source.label,
+        className: source.key,
+        children: source.children?.map((child) => tonode(child)),
+      };
+    };
 
-    console.log('sources', sources)
-    const nodes= sources.map(tonode)
-      console.log(nodes)
+    console.log("sources", sources);
+    const nodes = sources.map(tonode);
+    console.log(nodes);
     setNodes(nodes);
   }, []);
 

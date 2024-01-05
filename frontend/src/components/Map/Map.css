@@ -19,3 +19,12 @@
     /*margin: 0px;*/
     /*background: red;*/
 }
+
+.mapcard .p-card-body {
+    padding: 5px;
+}
+.mapcard .p-card-content {
+    padding: 5px;
+    /*margin: 0px;*/
+    /*background: red;*/
+}
