@@ -13,10 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ===============================================================================
-const BASE = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1";
-export async function st2GetLocations(agency) {
-  let url = `${BASE}/Locations?$filter=properties/agency eq '${agency}'&$expand=Things/Datastreams`;
+import { stringify } from "wkt";
 
+const BASE = "https://st2.newmexicowaterdata.org/FROST-Server/v1.1";
+export async function st2GetLocations(agency, polygon) {
+  let url;
+  if (polygon) {
+    url = `${BASE}/Locations?$filter=st_within(location, geography'${stringify(
+      polygon,
+    )}')&$expand=Things/Datastreams`;
+  } else if (agency) {
+    url = `${BASE}/Locations?$filter=properties/agency eq '${agency}'&$expand=Things/Datastreams`;
+  }
   return fetch(url)
     .then((response) => response.json())
     .then((data) => {

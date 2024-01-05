@@ -1,6 +1,7 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./Map.css";
 
+import { stringify } from "wkt";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Map, {
   Layer,
@@ -317,6 +318,27 @@ export default function MapComponent(props) {
       life: 3000,
     });
   };
+
+  const onSpatialSearch = (e) => {
+    console.log("spatial search", e);
+    for (const [key, searchPolygon] of Object.entries(features)) {
+      // console.log(key, searchPolygon, );
+      // console.log("asdf", stringify(searchPolygon.geometry));
+      st2GetLocations(null, searchPolygon.geometry).then((data) => {
+        console.log(data);
+        // _setData(key, make_feature_collection(data));
+      });
+    }
+
+    // const selected_polygon = getCurrentPolygon(e);
+    // if (selected_polygon === undefined) {
+    //   return;
+    // }
+    // console.log("selected polygon", selected_polygon);
+    // setSelected(selected_polygon);
+    // setHydroCollapsed(false);
+  };
+
   const onSearch = (keyword) => {
     console.debug("searching", keyword);
 
@@ -636,6 +658,7 @@ export default function MapComponent(props) {
               setKeyword={setSearchKeyword}
               onSearch={onSearch}
               onClear={onSearchClear}
+              onSpatialSearch={onSpatialSearch}
             />
           </Panel>
           <Panel
